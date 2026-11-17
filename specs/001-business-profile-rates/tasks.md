@@ -81,7 +81,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 > Escribir primero y comprobar que fallan.
 
-- [ ] T020 [P] [US1] Crear `src-tauri/tests/validation.rs`:
+- [X] T020 [P] [US1] Crear `src-tauri/tests/validation.rs`:
   - DNI válido `12345678Z` e inválido `12345678A`.
   - NIE válido `X1234567L` e inválido.
   - CIF válidos `A58818501` y `B65410011`, y CIF con control erróneo.
@@ -89,7 +89,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
   - Código postal `28001` válido; `5300`, `53001` y `00123` inválidos.
   - Teléfonos `600 123 456`, `+34 912345678` y `+44 20 7946 0958` válidos; `12345` y `500123456` inválidos.
   - Email `a@b.es` válido; `a@b` y `@b.es` inválidos.
-- [ ] T021 [P] [US1] Crear `src-tauri/tests/profile_service.rs` con una base de datos de archivo en `tempdir`:
+- [X] T021 [P] [US1] Crear `src-tauri/tests/profile_service.rs` con una base de datos de archivo en `tempdir`:
   - `get_profile` devuelve `None` en una base de datos nueva.
   - Guardar un borrador con campos vacíos devuelve `status = incomplete` con la lista exacta de `missing_fields`.
   - Guardar datos completos y válidos devuelve `complete`.
@@ -97,7 +97,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
   - IVA "150" → `Validation` con `VAT_OUT_OF_RANGE`; un nombre de 121 caracteres → `TOO_LONG`.
   - Cerrar y reabrir la conexión devuelve los mismos datos.
   - `vatRatePercent` es "21,00" por defecto.
-- [ ] T022 [P] [US1] Crear `src-tauri/tests/logo_service.rs`, con imágenes de prueba generadas en el propio test con el crate `image` en `tempdir`:
+- [X] T022 [P] [US1] Crear `src-tauri/tests/logo_service.rs`, con imágenes de prueba generadas en el propio test con el crate `image` en `tempdir`:
   - Archivo de 6 MB → `LOGO_TOO_LARGE`.
   - Texto o PDF renombrado a `.png` → `LOGO_UNSUPPORTED_FORMAT`.
   - PNG truncado → `LOGO_CORRUPT`.
@@ -106,7 +106,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
   - El archivo guardado en `branding/` tiene el mismo SHA-256 que el original (sin recodificar).
   - Tras un rechazo, el logo anterior y su archivo siguen intactos.
   - Sin fila de perfil previa, `set_logo` crea un borrador.
-- [ ] T023 [P] [US1] Crear `src/features/business-profile/BusinessProfilePage.test.tsx` con `mockIPC`:
+- [X] T023 [P] [US1] Crear `src/features/business-profile/BusinessProfilePage.test.tsx` con `mockIPC`:
   - `profile_get` devuelve `null` → se ve el modo guiado y el botón "Saltar".
   - Pulsar "Saltar" muestra el banner de perfil incompleto.
   - Los errores de `profile_validate` aparecen junto a cada campo.
@@ -115,40 +115,40 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Implementation for User Story 1
 
-- [ ] T024 [P] [US1] Implementar `src-tauri/src/domain/validation/{mod.rs,nif.rs,postal_code.rs,phone.rs,email.rs}` según R6:
+- [X] T024 [P] [US1] Implementar `src-tauri/src/domain/validation/{mod.rs,nif.rs,postal_code.rs,phone.rs,email.rs}` según R6:
   - `normalize_tax_id`, `validate_tax_id` (DNI, NIE y CIF con algoritmo de control oficial).
   - `validate_postal_code` (5 dígitos, prefijo 01–52).
   - `validate_phone` (9 dígitos 6/7/8/9 con `+34`/`0034` opcional, o internacional de 6 a 15 dígitos).
   - `validate_email` (sintaxis básica).
 
   Cada función devuelve `Result<String, ErrorCode>` con el valor normalizado.
-- [ ] T025 [US1] Implementar `src-tauri/src/domain/profile.rs`:
+- [X] T025 [US1] Implementar `src-tauri/src/domain/profile.rs`:
   - *Structs* `BusinessProfile`, `Address`, `LogoMeta` y `BusinessProfileInput` (serde camelCase).
   - Límites de longitud de data-model.md.
   - `hard_errors(&input) -> Vec<FieldError>` (`TOO_LONG`, `VAT_OUT_OF_RANGE`; bloquean el guardado).
   - `missing_fields(&profile) -> Vec<FieldError>` (obligatorios vacíos con `REQUIRED` y formatos inválidos con su código, usando los validadores de T024; los `message` salen de constantes en español).
   - `status()`.
-- [ ] T026 [US1] Implementar `src-tauri/src/storage/profile_repo.rs`: `get(&Connection) -> Option<BusinessProfile>`, `upsert(&Transaction, &BusinessProfile)` (`INSERT … ON CONFLICT(id) DO UPDATE`, actualiza `updated_at`) y `set_logo(&Transaction, Option<LogoMeta>)`.
-- [ ] T027 [P] [US1] Implementar `src-tauri/src/storage/logo_store.rs`:
+- [X] T026 [US1] Implementar `src-tauri/src/storage/profile_repo.rs`: `get(&Connection) -> Option<BusinessProfile>`, `upsert(&Transaction, &BusinessProfile)` (`INSERT … ON CONFLICT(id) DO UPDATE`, actualiza `updated_at`) y `set_logo(&Transaction, Option<LogoMeta>)`.
+- [X] T027 [P] [US1] Implementar `src-tauri/src/storage/logo_store.rs`:
   - `write_atomic(data_dir, bytes, ext) -> rel_path`: escribe `branding/.tmp-<rand>`, hace `fsync` y lo renombra a `branding/logo-<sha8>.<png|jpg>`.
   - `delete(data_dir, rel_path)` (ignora "no existe").
   - `read_data_url(data_dir, rel_path, mime) -> String` (base64).
-- [ ] T028 [US1] Implementar `src-tauri/src/services/logo_service.rs` y `src-tauri/src/services/mod.rs`:
+- [X] T028 [US1] Implementar `src-tauri/src/services/logo_service.rs` y `src-tauri/src/services/mod.rs`:
   - `validate_logo_file(path) -> Result<ValidatedLogo, AppError>`, en este orden: tamaño con `fs::metadata` (≤ 5 242 880), lectura, `image::guess_format` (solo PNG o JPEG), decodificación completa, dimensiones y `low_resolution` si el lado corto mide menos de 200, SHA-256.
   - `set_logo(state, path)`: valida; escribe con `logo_store`; en una transacción crea el borrador si no hay fila y llama a `profile_repo::set_logo`; tras el *commit* borra el archivo anterior. Si falla la transacción, borra el archivo nuevo.
   - `logo_view(...) -> LogoView`.
-- [ ] T029 [US1] Implementar `src-tauri/src/services/profile_service.rs`:
+- [X] T029 [US1] Implementar `src-tauri/src/services/profile_service.rs`:
   - `get_profile(state) -> Option<BusinessProfileView>`, que construye la vista con `missing_fields`, `status`, `vatRatePercent` formateado y el logo como `dataUrl`.
   - `save_profile(state, input) -> Result<BusinessProfileView, AppError>`, que normaliza (trim, tax_id), rechaza `hard_errors` y hace `upsert` en una transacción.
   - `validate_profile(input) -> Vec<FieldError>`, que devuelve `hard_errors` + `missing_fields` sin guardar.
-- [ ] T030 [US1] Implementar `src-tauri/src/commands/{mod.rs,profile.rs,logo.rs}`:
+- [X] T030 [US1] Implementar `src-tauri/src/commands/{mod.rs,profile.rs,logo.rs}`:
   - `#[tauri::command] profile_get`, `profile_save` y `profile_validate`.
   - `logo_pick_and_set` (`async`): usa `app.dialog().file().add_filter("Imagen", &["png","jpg","jpeg"]).blocking_pick_file()` dentro de `tauri::async_runtime::spawn_blocking`; devuelve `None` si se cancela; si no, llama a `logo_service::set_logo` y devuelve `{ logo, warnings }`.
 
   Registrarlos en `invoke_handler` de `src-tauri/src/lib.rs`.
-- [ ] T031 [P] [US1] Implementar `src/features/business-profile/useBusinessProfile.ts`: carga inicial (`profileGet`), `save(input)`, `validate(input)` con *debounce* de 300 ms, `pickLogo()`, y estado `profile`, `fieldErrors`, `saving` y `loading`. Los errores `AppError` se traducen a errores por campo o a un mensaje general.
-- [ ] T032 [P] [US1] Implementar `src/features/business-profile/LogoPicker.tsx` (+ `.module.css`): vista previa del logo (`dataUrl`, `object-fit: contain`, fondo a cuadros para ver la transparencia), botón "Elegir logo", aviso de baja resolución con `Banner` `warning` y mensajes de rechazo con `role="alert"`.
-- [ ] T033 [US1] Implementar `src/features/business-profile/BusinessProfilePage.tsx` (+ `.module.css`) con React Hook Form. Secciones:
+- [X] T031 [P] [US1] Implementar `src/features/business-profile/useBusinessProfile.ts`: carga inicial (`profileGet`), `save(input)`, `validate(input)` con *debounce* de 300 ms, `pickLogo()`, y estado `profile`, `fieldErrors`, `saving` y `loading`. Los errores `AppError` se traducen a errores por campo o a un mensaje general.
+- [X] T032 [P] [US1] Implementar `src/features/business-profile/LogoPicker.tsx` (+ `.module.css`): vista previa del logo (`dataUrl`, `object-fit: contain`, fondo a cuadros para ver la transparencia), botón "Elegir logo", aviso de baja resolución con `Banner` `warning` y mensajes de rechazo con `role="alert"`.
+- [X] T033 [US1] Implementar `src/features/business-profile/BusinessProfilePage.tsx` (+ `.module.css`) con React Hook Form. Secciones:
   - Datos del negocio: nombre comercial*, razón social, NIF/CIF*, teléfono*, email, web.
   - Dirección: calle y número*, código postal*, localidad*, provincia*.
   - IVA general (%), con 21 por defecto.
@@ -156,7 +156,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
   - Tarjeta de vista previa con los datos y el logo tal como aparecerán.
 
   Los errores combinan los del backend y los "obligatorio" del cliente. Al guardar se muestra un toast. Con `?guiado=1`, se ve una cabecera de bienvenida con pasos y el botón "Saltar por ahora" (FR-001c). Añadir la ruta en `src/app/routes.tsx`.
-- [ ] T034 [US1] Crear `src/app/IncompleteProfileBanner.tsx` e integrarlo en `src/app/App.tsx`. Al arrancar se llama a `profileGet`. Si devuelve `null` y no se ha saltado la configuración en esta sesión, se navega a `/negocio?guiado=1`. Si el perfil no existe o está `incomplete`, se muestra en todas las pantallas un `Banner` `warning` "Tu perfil está incompleto: faltan N datos" con el botón "Completar ahora" (FR-001c, FR-008). El banner se actualiza después de cada guardado.
+- [X] T034 [US1] Crear `src/app/IncompleteProfileBanner.tsx` e integrarlo en `src/app/App.tsx`. Al arrancar se llama a `profileGet`. Si devuelve `null` y no se ha saltado la configuración en esta sesión, se navega a `/negocio?guiado=1`. Si el perfil no existe o está `incomplete`, se muestra en todas las pantallas un `Banner` `warning` "Tu perfil está incompleto: faltan N datos" con el botón "Completar ahora" (FR-001c, FR-008). El banner se actualiza después de cada guardado.
 
 **Checkpoint**: US1 funciona por sí sola. Hay que validarla con los escenarios 1–7 y 10 de quickstart.md con la red desactivada.
 

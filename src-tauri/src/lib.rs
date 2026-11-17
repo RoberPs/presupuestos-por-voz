@@ -2,8 +2,10 @@
 //!
 //! Sin red ni servidor (constitución, Principios I y II): solo SQLite y archivos en `app_data_dir`.
 
+pub mod commands;
 pub mod domain;
 pub mod error;
+pub mod services;
 pub mod state;
 pub mod storage;
 
@@ -50,7 +52,12 @@ pub fn run() {
             app.manage(AppState::new(conn, data_dir));
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![
+            commands::profile::profile_get,
+            commands::profile::profile_save,
+            commands::profile::profile_validate,
+            commands::logo::logo_pick_and_set,
+        ])
         .run(tauri::generate_context!())
         .expect("error al iniciar la aplicación");
 }
