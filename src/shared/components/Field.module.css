@@ -1,0 +1,60 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.required {
+  color: var(--color-danger);
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.controlRow > input,
+.controlRow > select {
+  flex: 1;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.controlRow > input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.suffix {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.help {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  min-height: 1.25em;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  font-weight: 600;
+}
