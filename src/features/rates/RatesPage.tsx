@@ -7,12 +7,15 @@ import { useToast } from "../../shared/components/Toast";
 import { es } from "../../shared/i18n/es";
 import type { Rate, RateInput } from "../../shared/ipc/types";
 import { RateFormDialog, type RateDialogMode } from "./RateFormDialog";
+import { RatesSearch } from "./RatesSearch";
 import { useRates } from "./useRates";
 import styles from "./RatesPage.module.css";
 
 export function RatesPage() {
   const { showToast } = useToast();
-  const { rates, units, loading, lastError, create, update, remove } = useRates();
+  const [query, setQuery] = useState("");
+  const { rates, units, loading, lastError, create, update, remove } = useRates(query);
+  const hasQuery = query.trim() !== "";
   const [dialog, setDialog] = useState<RateDialogMode | null>(null);
   const [toDelete, setToDelete] = useState<Rate | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -64,8 +67,22 @@ export function RatesPage() {
         </Banner>
       ) : null}
 
+      {!loading && (rates.length > 0 || hasQuery) ? <RatesSearch onSearch={setQuery} /> : null}
+
       {loading ? (
         <p>{es.app.loading}</p>
+      ) : rates.length === 0 && hasQuery ? (
+        <EmptyState
+          title={es.rates.search.noResults(query.trim())}
+          action={
+            <Button
+              variant="primary"
+              onClick={() => setDialog({ kind: "create", initialConcept: query.trim() })}
+            >
+              {es.rates.search.createFromQuery(query.trim())}
+            </Button>
+          }
+        />
       ) : rates.length === 0 ? (
         <EmptyState
           title={es.rates.emptyTitle}

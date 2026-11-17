@@ -251,12 +251,12 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T052 [P] [US4] Crear `src-tauri/tests/rate_search.rs`:
+- [X] T052 [P] [US4] Crear `src-tauri/tests/rate_search.rs`:
   - Con "Instalación de grifo", "Cambio de grifo" y "Pintura de pared": `grifo` devuelve 2, `GRIFO` devuelve 2, `instalacion` devuelve 1 y `zzz` devuelve 0.
   - Una consulta vacía o de solo espacios devuelve todas.
   - `%` y `_` se tratan como literales.
   - `rates_search_500`: inserta 500 tarifas y comprueba que `list(Some("tubo"))` tarda menos de 50 ms con `--release` (con `cfg!(debug_assertions)` el umbral sube a 250 ms).
-- [ ] T053 [P] [US4] Crear `src/features/rates/RatesSearch.test.tsx` con `mockIPC`:
+- [X] T053 [P] [US4] Crear `src/features/rates/RatesSearch.test.tsx` con `mockIPC`:
   - Escribir llama a `rates_list` con `query` y muestra solo los resultados.
   - Sin resultados se ve "No hay tarifas que coincidan con «zzz»" y el botón "Crear tarifa «zzz»", que abre `RateFormDialog` con el concepto precargado.
   - Vaciar el buscador restaura la lista completa.
@@ -264,8 +264,8 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Implementation for User Story 4
 
-- [ ] T054 [US4] Ampliar `src-tauri/src/storage/rate_repo.rs` con `search(&Connection, norm_query) -> Vec<RateRow>` (`WHERE r.concept_norm LIKE '%' || ?1 || '%' ESCAPE '\'`, mismo `ORDER BY`). En `src-tauri/src/services/rate_service.rs::list`, si `query` tiene texto tras `trim`, usar `search(escape_like(normalize(q)))`; si no, `list_all`.
-- [ ] T055 [US4] Implementar `src/features/rates/RatesSearch.tsx` (input `type="search"` con etiqueta "Buscar tarifa", *debounce* de 150 ms y botón para limpiar) e integrarlo en `src/features/rates/RatesPage.tsx` y `useRates.ts` (parámetro `query`). Distinguir los estados vacío (sin consulta) y sin resultados (con consulta), y conectar "Crear tarifa «X»" con `RateFormDialog initialConcept`.
+- [X] T054 [US4] Ampliar `src-tauri/src/storage/rate_repo.rs` con `search(&Connection, norm_query) -> Vec<RateRow>` (`WHERE r.concept_norm LIKE '%' || ?1 || '%' ESCAPE '\'`, mismo `ORDER BY`). En `src-tauri/src/services/rate_service.rs::list`, si `query` tiene texto tras `trim`, usar `search(escape_like(normalize(q)))`; si no, `list_all`.
+- [X] T055 [US4] Implementar `src/features/rates/RatesSearch.tsx` (input `type="search"` con etiqueta "Buscar tarifa", *debounce* de 150 ms y botón para limpiar) e integrarlo en `src/features/rates/RatesPage.tsx` y `useRates.ts` (parámetro `query`). Distinguir los estados vacío (sin consulta) y sin resultados (con consulta), y conectar "Crear tarifa «X»" con `RateFormDialog initialConcept`.
 
 **Checkpoint**: las cuatro historias funcionan cada una por separado.
 
