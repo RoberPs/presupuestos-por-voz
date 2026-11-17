@@ -80,7 +80,7 @@ export const es = {
     message: "¿Quieres guardar los cambios antes de salir?",
     save: "Guardar",
     discard: "Descartar",
-    cancel: "Seguir editando",
+    cancel: "Cancelar",
   },
   rates: {
     title: "Tarifas",

@@ -5,6 +5,7 @@ import { Banner } from "../../shared/components/Banner";
 import { Button } from "../../shared/components/Button";
 import { Field } from "../../shared/components/Field";
 import { useToast } from "../../shared/components/Toast";
+import { UnsavedChangesGuard } from "../../shared/components/UnsavedChangesGuard";
 import { es } from "../../shared/i18n/es";
 import type { BusinessProfileInput, BusinessProfileView } from "../../shared/ipc/types";
 import { LogoPicker } from "./LogoPicker";
@@ -82,7 +83,7 @@ export function BusinessProfilePage() {
   const { profile, loading, fieldErrors, setFieldErrors, saving, generalError, save, validate } = bp;
 
   const form = useForm<ProfileFormValues>({ defaultValues: fromView(null) });
-  const { register, handleSubmit, reset, watch, getFieldState, formState } = form;
+  const { register, handleSubmit, reset, watch, getFieldState, getValues, formState } = form;
   const initialized = useRef(false);
   const [showAllErrors, setShowAllErrors] = useState(false);
 
@@ -115,6 +116,16 @@ export function BusinessProfilePage() {
     }
   });
 
+  // Guardado desde el aviso de cambios sin guardar.
+  const saveFromGuard = async () => {
+    setShowAllErrors(true);
+    const saved = await save(toInput(getValues()));
+    if (!saved) return false;
+    reset(fromView(saved));
+    showToast(es.business.saved);
+    return true;
+  };
+
   const onSkip = () => {
     skipGuided();
     navigate("/negocio", { replace: true });
@@ -137,6 +148,7 @@ export function BusinessProfilePage() {
 
   return (
     <div>
+      <UnsavedChangesGuard when={formState.isDirty} onSave={saveFromGuard} />
       {guided ? (
         <section className={styles.guided} aria-labelledby={`${dataId}-welcome`}>
           <h1 id={`${dataId}-welcome`}>{es.business.guided.title}</h1>
@@ -247,7 +259,11 @@ export function BusinessProfilePage() {
 
         <aside className={styles.side}>
           <div className={styles.card}>
-            <LogoPicker logo={profile?.logo ?? null} onPick={bp.pickLogo} />
+            <LogoPicker
+              logo={profile?.logo ?? null}
+              onPick={bp.pickLogo}
+              onRemove={bp.removeLogo}
+            />
           </div>
           <section aria-labelledby={previewId} className={`${styles.card} ${styles.preview}`}>
             <h2 id={previewId}>{es.business.sections.preview}</h2>

@@ -119,3 +119,49 @@ pub fn set_logo(state: &AppState, path: &Path) -> Result<LogoSetResult, AppError
         if logo.low_resolution() { vec![LOW_RESOLUTION_WARNING.to_string()] } else { vec![] };
     Ok(LogoSetResult { logo: logo_view(&state.data_dir, &meta)?, warnings })
 }
+
+/// Quita el logo del perfil y, tras confirmar la transacción, borra su archivo.
+pub fn remove_logo(state: &AppState) -> Result<(), AppError> {
+    let previous = {
+        let mut conn = state.conn()?;
+        let tx = conn.transaction()?;
+        profile_repo::ensure_row(&tx)?;
+        let previous = profile_repo::get(&tx)?.and_then(|p| p.logo).map(|l| l.file);
+        profile_repo::set_logo(&tx, None)?;
+        tx.commit()?;
+        previous
+    };
+    if let Some(old) = previous {
+        if let Err(e) = logo_store::delete(&state.data_dir, &old) {
+            log::warn!("No se ha podido borrar el logo ({old}): {e}");
+        }
+    }
+    Ok(())
+}
+
+/// Borra de `branding/` los logos y temporales que no son el logo vigente (p. ej. tras un
+/// cierre inesperado). Devuelve cuántos archivos ha borrado.
+pub fn cleanup_orphans(data_dir: &Path, conn: &rusqlite::Connection) -> Result<usize, AppError> {
+    let dir = data_dir.join(logo_store::BRANDING_DIR);
+    let entries = match fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e.into()),
+    };
+    let current = profile_repo::get(conn)?
+        .and_then(|p| p.logo)
+        .and_then(|l| l.file.rsplit('/').next().map(str::to_string));
+
+    let mut removed = 0;
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let ours = name.starts_with("logo-") || name.starts_with(".tmp-");
+        if ours && Some(&name) != current.as_ref() && entry.path().is_file() {
+            match fs::remove_file(entry.path()) {
+                Ok(()) => removed += 1,
+                Err(e) => log::warn!("No se ha podido borrar {name}: {e}"),
+            }
+        }
+    }
+    Ok(removed)
+}

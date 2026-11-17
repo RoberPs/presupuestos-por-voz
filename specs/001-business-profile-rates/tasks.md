@@ -217,13 +217,13 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T046 [P] [US3] Crear `src-tauri/tests/logo_replace.rs`:
+- [X] T046 [P] [US3] Crear `src-tauri/tests/logo_replace.rs`:
   - Sustituir el logo A por B deja en `branding/` solo el archivo de B.
   - `remove_logo` pone las columnas del logo a `NULL` y borra el archivo.
   - Intentar sustituir por un archivo inválido mantiene el archivo y la fila de A.
   - `cleanup_orphans` borra los archivos `logo-*` y `.tmp-*` no referenciados y conserva el vigente.
   - Una edición de datos ya guardados persiste al reabrir.
-- [ ] T047 [P] [US3] Crear `src/shared/components/UnsavedChangesGuard.test.tsx` y ampliar `src/features/business-profile/BusinessProfilePage.test.tsx`:
+- [X] T047 [P] [US3] Crear `src/shared/components/UnsavedChangesGuard.test.tsx` y ampliar `src/features/business-profile/BusinessProfilePage.test.tsx`:
   - Con el formulario modificado, navegar a `/tarifas` muestra el diálogo.
   - "Descartar" navega sin guardar.
   - "Guardar" llama a `profile_save` y después navega.
@@ -232,10 +232,10 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Implementation for User Story 3
 
-- [ ] T048 [US3] Ampliar `src-tauri/src/services/logo_service.rs` con `remove_logo(state)` (en una transacción pone el logo a `None` y, tras el *commit*, borra el archivo) y `cleanup_orphans(data_dir, conn)` (borra de `branding/` lo que no sea el `logo_file` vigente). Llamar a `cleanup_orphans` en el `setup` de `src-tauri/src/lib.rs`.
-- [ ] T049 [US3] Añadir el comando `logo_remove` en `src-tauri/src/commands/logo.rs` (devuelve `BusinessProfileView`) y registrarlo en `src-tauri/src/lib.rs`.
-- [ ] T050 [P] [US3] Implementar `src/shared/components/UnsavedChangesGuard.tsx`: recibe `when: boolean` y `onSave: () => Promise<boolean>`. Usa `useBlocker` de React Router para mostrar `ConfirmDialog` con "Guardar", "Descartar" y "Cancelar". Añade además un `beforeunload` para el cierre de la ventana.
-- [ ] T051 [US3] Ampliar `src/features/business-profile/BusinessProfilePage.tsx` y `LogoPicker.tsx`: con logo existente, el botón pasa a "Cambiar logo" y aparece "Quitar logo" (con `ConfirmDialog`), que llama a `logoRemove` mediante `useBusinessProfile`. Envolver la página con `UnsavedChangesGuard` (`when = formState.isDirty`). Tras guardar, hacer `reset` con los valores guardados.
+- [X] T048 [US3] Ampliar `src-tauri/src/services/logo_service.rs` con `remove_logo(state)` (en una transacción pone el logo a `None` y, tras el *commit*, borra el archivo) y `cleanup_orphans(data_dir, conn)` (borra de `branding/` lo que no sea el `logo_file` vigente). Llamar a `cleanup_orphans` en el `setup` de `src-tauri/src/lib.rs`.
+- [X] T049 [US3] Añadir el comando `logo_remove` en `src-tauri/src/commands/logo.rs` (devuelve `BusinessProfileView`) y registrarlo en `src-tauri/src/lib.rs`.
+- [X] T050 [P] [US3] Implementar `src/shared/components/UnsavedChangesGuard.tsx`: recibe `when: boolean` y `onSave: () => Promise<boolean>`. Usa `useBlocker` de React Router para mostrar `ConfirmDialog` con "Guardar", "Descartar" y "Cancelar". Añade además un `beforeunload` para el cierre de la ventana.
+- [X] T051 [US3] Ampliar `src/features/business-profile/BusinessProfilePage.tsx` y `LogoPicker.tsx`: con logo existente, el botón pasa a "Cambiar logo" y aparece "Quitar logo" (con `ConfirmDialog`), que llama a `logoRemove` mediante `useBusinessProfile`. Envolver la página con `UnsavedChangesGuard` (`when = formState.isDirty`). Tras guardar, hacer `reset` con los valores guardados.
 
 **Checkpoint**: US1, US2 y US3 funcionan cada una por separado.
 

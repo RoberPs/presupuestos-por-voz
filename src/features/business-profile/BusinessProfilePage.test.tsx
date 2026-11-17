@@ -118,6 +118,67 @@ describe("BusinessProfilePage (US1)", () => {
     );
   });
 
+  describe("US3: modificar datos y logo", () => {
+    async function editPhoneAndLeave(user: ReturnType<typeof userEvent.setup>) {
+      const phone = await screen.findByLabelText(/Teléfono/);
+      await user.clear(phone);
+      await user.type(phone, "911 222 333");
+      await user.click(screen.getByRole("link", { name: "Tarifas" }));
+      return screen.findByRole("dialog", { name: "Tienes cambios sin guardar" });
+    }
+
+    it("con cambios sin guardar avisa al salir; Cancelar se queda en la página", async () => {
+      const user = userEvent.setup();
+      setupIPC({ profile_get: () => profileFixture() });
+      const { router } = renderApp("/negocio");
+      const dialog = await editPhoneAndLeave(user);
+      await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+      expect(router.state.location.pathname).toBe("/negocio");
+      expect(screen.getByLabelText(/Teléfono/)).toHaveValue("911 222 333");
+    });
+
+    it("Descartar navega sin guardar", async () => {
+      const user = userEvent.setup();
+      const calls = setupIPC({ profile_get: () => profileFixture() });
+      const { router } = renderApp("/negocio");
+      const dialog = await editPhoneAndLeave(user);
+      await user.click(within(dialog).getByRole("button", { name: "Descartar" }));
+      await waitFor(() => expect(router.state.location.pathname).toBe("/tarifas"));
+      expect(calls.some((c) => c.cmd === "profile_save")).toBe(false);
+    });
+
+    it("Guardar llama a profile_save y después navega", async () => {
+      const user = userEvent.setup();
+      const calls = setupIPC({
+        profile_get: () => profileFixture(),
+        profile_save: (_c, args) =>
+          profileFixture({ phone: (args.input as BusinessProfileInput).phone }),
+      });
+      const { router } = renderApp("/negocio");
+      const dialog = await editPhoneAndLeave(user);
+      await user.click(within(dialog).getByRole("button", { name: "Guardar" }));
+      await waitFor(() => expect(router.state.location.pathname).toBe("/tarifas"));
+      const save = calls.find((c) => c.cmd === "profile_save");
+      expect((save!.args.input as BusinessProfileInput).phone).toBe("911 222 333");
+    });
+
+    it("Quitar logo pide confirmación y llama a logo_remove", async () => {
+      const user = userEvent.setup();
+      const calls = setupIPC({
+        profile_get: () => profileFixture({ logo: logoFixture }),
+        logo_remove: () => profileFixture({ logo: null }),
+      });
+      renderApp("/negocio");
+      const logoSection = await screen.findByRole("region", { name: "Logo" });
+      await user.click(within(logoSection).getByRole("button", { name: "Quitar logo" }));
+      const dialog = await screen.findByRole("dialog", { name: "¿Quitar el logo?" });
+      expect(calls.some((c) => c.cmd === "logo_remove")).toBe(false);
+      await user.click(within(dialog).getByRole("button", { name: "Quitar logo" }));
+      await waitFor(() => expect(calls.some((c) => c.cmd === "logo_remove")).toBe(true));
+      expect(await within(logoSection).findByText("Sin logo")).toBeInTheDocument();
+    });
+  });
+
   it("perfil incompleto: muestra el aviso con el número de datos que faltan", async () => {
     setupIPC({
       profile_get: () =>

@@ -1,9 +1,9 @@
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::domain::profile::LogoSetResult;
+use crate::domain::profile::{BusinessProfileView, LogoSetResult};
 use crate::error::AppError;
-use crate::services::logo_service;
+use crate::services::{logo_service, profile_service};
 use crate::state::AppState;
 
 /// Abre el diálogo nativo (PNG/JPG) y guarda el logo elegido. `None` si el usuario cancela.
@@ -31,4 +31,11 @@ pub async fn logo_pick_and_set(app: AppHandle) -> Result<Option<LogoSetResult>, 
         log::error!("Fallo en la tarea del logo: {e}");
         AppError::storage()
     })?
+}
+
+/// Quita el logo. La interfaz pide confirmación antes de llamarlo.
+#[tauri::command]
+pub fn logo_remove(state: State<'_, AppState>) -> Result<BusinessProfileView, AppError> {
+    logo_service::remove_logo(&state)?;
+    profile_service::get_profile(&state)?.ok_or_else(AppError::storage)
 }
