@@ -2,3 +2,5 @@
 
 pub mod logo;
 pub mod profile;
+pub mod rates;
+pub mod units;

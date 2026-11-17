@@ -2,3 +2,4 @@
 
 pub mod logo_service;
 pub mod profile_service;
+pub mod rate_service;

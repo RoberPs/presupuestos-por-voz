@@ -170,7 +170,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T035 [P] [US2] Crear `src-tauri/tests/rate_service.rs` con una base de datos en `tempdir`:
+- [X] T035 [P] [US2] Crear `src-tauri/tests/rate_service.rs` con una base de datos en `tempdir`:
   - Crear una tarifa válida devuelve `priceDisplay` "45,50 €".
   - Cada código `PRICE_*` para "", "abc", "12,345", "0" y "-3".
   - `CONCEPT_REQUIRED` y `UNIT_REQUIRED`.
@@ -181,7 +181,7 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
   - Borrar elimina la tarifa; actualizar o borrar un `id` inexistente → `NotFound`.
   - La lista sale ordenada por `concept_norm` ("Ábaco" antes que "Brida").
   - Los datos persisten al reabrir la conexión.
-- [ ] T036 [P] [US2] Crear `src/features/rates/RatesPage.test.tsx` con `mockIPC`:
+- [X] T036 [P] [US2] Crear `src/features/rates/RatesPage.test.tsx` con `mockIPC`:
   - Una lista vacía muestra `EmptyState` y "Crear primera tarifa".
   - Crear una tarifa la añade a la lista.
   - Editar el precio muestra el nuevo `priceDisplay`.
@@ -191,17 +191,17 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Implementar `src-tauri/src/domain/rate.rs`:
+- [X] T037 [P] [US2] Implementar `src-tauri/src/domain/rate.rs`:
   - *Structs* `RateInput { concept, unit_label, price }` (serde camelCase), `ValidRate { concept, concept_norm, unit_label, unit_norm, price_cents }` y `RateView { id, concept, unit: UnitView, price_cents, price_display }`.
   - `validate(input) -> Result<ValidRate, Vec<FieldError>>`: concept con trim y espacios colapsados, de 1 a 160 caracteres; unit_label con trim, de 1 a 30 caracteres; precio con `money::parse_price_cents`.
-- [ ] T038 [P] [US2] Implementar `src-tauri/src/storage/unit_repo.rs`: `list(&Connection) -> Vec<UnitView>` (predefinidas por `id` y después personalizadas por `label_norm`), `find_by_norm(&Connection, &str) -> Option<i64>` e `insert_custom(&Transaction, label, label_norm) -> i64`.
-- [ ] T039 [US2] Implementar `src-tauri/src/storage/rate_repo.rs`: `list_all(&Connection) -> Vec<RateRow>` (JOIN `units`, `ORDER BY concept_norm, concept`), `get(&Connection, id)`, `find_duplicate(&Connection, concept_norm, unit_id, exclude_id: Option<i64>) -> Option<i64>`, `insert`, `update` y `delete` (devuelve las filas afectadas).
-- [ ] T040 [US2] Implementar `src-tauri/src/services/rate_service.rs`: `list(state, query: Option<String>)` (por ahora ignora `query` y llama a `list_all`), `create(state, input)` y `update(state, id, input)`. Ambos, dentro de una transacción: validan, resuelven o crean la unidad, comprueban duplicados (excluyendo el propio `id` al actualizar) y escriben. Una violación de `UNIQUE` de SQLite también se traduce a `DuplicateRate`. `delete(state, id)` devuelve `NotFound` si no hay filas afectadas. Los `RateView` se construyen con `money::format_eur`.
-- [ ] T041 [US2] Implementar `src-tauri/src/commands/units.rs` (`units_list`) y `src-tauri/src/commands/rates.rs` (`rates_list(query: Option<String>)`, `rates_create(input)`, `rates_update(id, input)` y `rates_delete(id)`) y registrarlos en `src-tauri/src/lib.rs`.
-- [ ] T042 [P] [US2] Implementar `src/features/rates/useRates.ts`: `rates`, `units`, `reload()`, `create`, `update` y `remove`. Tras cada mutación recarga las tarifas y las unidades. Expone `lastError` como `AppError`.
-- [ ] T043 [P] [US2] Implementar `src/features/rates/UnitSelect.tsx`: combobox accesible (`input` + `datalist`, o un listbox propio) con las unidades de `units_list` y la posibilidad de escribir una nueva. Muestra el texto de ayuda "Puedes escribir otra unidad".
-- [ ] T044 [US2] Implementar `src/features/rates/RateFormDialog.tsx` (+ `.module.css`): modo crear o editar, campos concepto, unidad (`UnitSelect`) y precio (texto con `inputMode="decimal"` y sufijo "€ sin IVA"), y errores por campo desde `validation`. Ante `duplicateRate`, muestra el mensaje y el botón "Editar la existente" (`onEditExisting(id)`). Admite la *prop* `initialConcept` para precargar.
-- [ ] T045 [US2] Implementar `src/features/rates/RatesPage.tsx` (+ `.module.css`): `Banner` `info` "Los precios se guardan sin IVA"; lista de filas con concepto, unidad y precio, cada una con los botones "Editar" y "Borrar"; botón "Nueva tarifa"; `EmptyState` "Aún no tienes tarifas" con "Crear primera tarifa"; borrado con `ConfirmDialog` ("¿Borrar la tarifa «X»?"); toasts de confirmación. Añadir la ruta `/tarifas` en `src/app/routes.tsx`.
+- [X] T038 [P] [US2] Implementar `src-tauri/src/storage/unit_repo.rs`: `list(&Connection) -> Vec<UnitView>` (predefinidas por `id` y después personalizadas por `label_norm`), `find_by_norm(&Connection, &str) -> Option<i64>` e `insert_custom(&Transaction, label, label_norm) -> i64`.
+- [X] T039 [US2] Implementar `src-tauri/src/storage/rate_repo.rs`: `list_all(&Connection) -> Vec<RateRow>` (JOIN `units`, `ORDER BY concept_norm, concept`), `get(&Connection, id)`, `find_duplicate(&Connection, concept_norm, unit_id, exclude_id: Option<i64>) -> Option<i64>`, `insert`, `update` y `delete` (devuelve las filas afectadas).
+- [X] T040 [US2] Implementar `src-tauri/src/services/rate_service.rs`: `list(state, query: Option<String>)` (por ahora ignora `query` y llama a `list_all`), `create(state, input)` y `update(state, id, input)`. Ambos, dentro de una transacción: validan, resuelven o crean la unidad, comprueban duplicados (excluyendo el propio `id` al actualizar) y escriben. Una violación de `UNIQUE` de SQLite también se traduce a `DuplicateRate`. `delete(state, id)` devuelve `NotFound` si no hay filas afectadas. Los `RateView` se construyen con `money::format_eur`.
+- [X] T041 [US2] Implementar `src-tauri/src/commands/units.rs` (`units_list`) y `src-tauri/src/commands/rates.rs` (`rates_list(query: Option<String>)`, `rates_create(input)`, `rates_update(id, input)` y `rates_delete(id)`) y registrarlos en `src-tauri/src/lib.rs`.
+- [X] T042 [P] [US2] Implementar `src/features/rates/useRates.ts`: `rates`, `units`, `reload()`, `create`, `update` y `remove`. Tras cada mutación recarga las tarifas y las unidades. Expone `lastError` como `AppError`.
+- [X] T043 [P] [US2] Implementar `src/features/rates/UnitSelect.tsx`: combobox accesible (`input` + `datalist`, o un listbox propio) con las unidades de `units_list` y la posibilidad de escribir una nueva. Muestra el texto de ayuda "Puedes escribir otra unidad".
+- [X] T044 [US2] Implementar `src/features/rates/RateFormDialog.tsx` (+ `.module.css`): modo crear o editar, campos concepto, unidad (`UnitSelect`) y precio (texto con `inputMode="decimal"` y sufijo "€ sin IVA"), y errores por campo desde `validation`. Ante `duplicateRate`, muestra el mensaje y el botón "Editar la existente" (`onEditExisting(id)`). Admite la *prop* `initialConcept` para precargar.
+- [X] T045 [US2] Implementar `src/features/rates/RatesPage.tsx` (+ `.module.css`): `Banner` `info` "Los precios se guardan sin IVA"; lista de filas con concepto, unidad y precio, cada una con los botones "Editar" y "Borrar"; botón "Nueva tarifa"; `EmptyState` "Aún no tienes tarifas" con "Crear primera tarifa"; borrado con `ConfirmDialog` ("¿Borrar la tarifa «X»?"); toasts de confirmación. Añadir la ruta `/tarifas` en `src/app/routes.tsx`.
 
 **Checkpoint**: US1 y US2 funcionan cada una por separado.
 

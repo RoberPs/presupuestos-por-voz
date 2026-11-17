@@ -14,7 +14,7 @@ function setupIPC(handlers: Record<string, Handler>) {
     calls.push({ cmd, args: a });
     const h = handlers[cmd];
     if (h) return h(cmd, a);
-    if (cmd === "profile_validate") return [];
+    if (cmd === "profile_validate" || cmd === "rates_list" || cmd === "units_list") return [];
     return null;
   });
   return calls;

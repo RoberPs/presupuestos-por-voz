@@ -57,6 +57,11 @@ pub fn run() {
             commands::profile::profile_save,
             commands::profile::profile_validate,
             commands::logo::logo_pick_and_set,
+            commands::units::units_list,
+            commands::rates::rates_list,
+            commands::rates::rates_create,
+            commands::rates::rates_update,
+            commands::rates::rates_delete,
         ])
         .run(tauri::generate_context!())
         .expect("error al iniciar la aplicación");
