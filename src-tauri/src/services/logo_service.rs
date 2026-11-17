@@ -52,7 +52,11 @@ pub fn validate_logo_file(path: &Path) -> Result<ValidatedLogo, AppError> {
     let (format, mime, ext) = match image::guess_format(&bytes) {
         Ok(ImageFormat::Png) => (ImageFormat::Png, "image/png", "png"),
         Ok(ImageFormat::Jpeg) => (ImageFormat::Jpeg, "image/jpeg", "jpg"),
-        _ => return Err(AppError::logo_rejected(LogoRejectCode::LogoUnsupportedFormat)),
+        _ => {
+            return Err(AppError::logo_rejected(
+                LogoRejectCode::LogoUnsupportedFormat,
+            ))
+        }
     };
     let img = image::load_from_memory_with_format(&bytes, format).map_err(|e| {
         log::warn!("Logo dañado: {e}");
@@ -60,7 +64,14 @@ pub fn validate_logo_file(path: &Path) -> Result<ValidatedLogo, AppError> {
     })?;
     let sha256 = hex::encode(Sha256::digest(&bytes));
 
-    Ok(ValidatedLogo { width_px: img.width(), height_px: img.height(), bytes, mime, ext, sha256 })
+    Ok(ValidatedLogo {
+        width_px: img.width(),
+        height_px: img.height(),
+        bytes,
+        mime,
+        ext,
+        sha256,
+    })
 }
 
 pub fn logo_view(data_dir: &Path, meta: &LogoMeta) -> Result<LogoView, AppError> {
@@ -115,9 +126,15 @@ pub fn set_logo(state: &AppState, path: &Path) -> Result<LogoSetResult, AppError
         }
     }
 
-    let warnings =
-        if logo.low_resolution() { vec![LOW_RESOLUTION_WARNING.to_string()] } else { vec![] };
-    Ok(LogoSetResult { logo: logo_view(&state.data_dir, &meta)?, warnings })
+    let warnings = if logo.low_resolution() {
+        vec![LOW_RESOLUTION_WARNING.to_string()]
+    } else {
+        vec![]
+    };
+    Ok(LogoSetResult {
+        logo: logo_view(&state.data_dir, &meta)?,
+        warnings,
+    })
 }
 
 /// Quita el logo del perfil y, tras confirmar la transacción, borra su archivo.

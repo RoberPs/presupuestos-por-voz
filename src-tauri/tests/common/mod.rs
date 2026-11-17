@@ -56,8 +56,9 @@ pub fn empty_input() -> BusinessProfileInput {
 }
 
 pub fn write_png_rgba(dir: &Path, name: &str, w: u32, h: u32) -> PathBuf {
-    let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
-        ImageBuffer::from_fn(w, h, |x, _| Rgba([200, 30, 30, if x % 2 == 0 { 0 } else { 255 }]));
+    let img: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_fn(w, h, |x, _| {
+        Rgba([200, 30, 30, if x % 2 == 0 { 0 } else { 255 }])
+    });
     let path = dir.join(name);
     img.save_with_format(&path, ImageFormat::Png).unwrap();
     path
@@ -74,7 +75,10 @@ pub fn write_jpg(dir: &Path, name: &str, w: u32, h: u32) -> PathBuf {
 pub fn branding_files(data_dir: &Path) -> Vec<String> {
     let dir = data_dir.join("branding");
     let mut names: Vec<String> = match std::fs::read_dir(&dir) {
-        Ok(rd) => rd.filter_map(|e| e.ok()).map(|e| e.file_name().to_string_lossy().into()).collect(),
+        Ok(rd) => rd
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into())
+            .collect(),
         Err(_) => vec![],
     };
     names.sort();

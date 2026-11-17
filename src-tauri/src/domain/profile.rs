@@ -116,16 +116,46 @@ struct Limit {
 }
 
 const LIMITS: &[Limit] = &[
-    Limit { field: "tradeName", max: 120 },
-    Limit { field: "legalName", max: 160 },
-    Limit { field: "taxId", max: 20 },
-    Limit { field: "phone", max: 30 },
-    Limit { field: "email", max: 254 },
-    Limit { field: "website", max: 200 },
-    Limit { field: "address.street", max: 160 },
-    Limit { field: "address.postalCode", max: 10 },
-    Limit { field: "address.city", max: 80 },
-    Limit { field: "address.province", max: 80 },
+    Limit {
+        field: "tradeName",
+        max: 120,
+    },
+    Limit {
+        field: "legalName",
+        max: 160,
+    },
+    Limit {
+        field: "taxId",
+        max: 20,
+    },
+    Limit {
+        field: "phone",
+        max: 30,
+    },
+    Limit {
+        field: "email",
+        max: 254,
+    },
+    Limit {
+        field: "website",
+        max: 200,
+    },
+    Limit {
+        field: "address.street",
+        max: 160,
+    },
+    Limit {
+        field: "address.postalCode",
+        max: 10,
+    },
+    Limit {
+        field: "address.city",
+        max: 80,
+    },
+    Limit {
+        field: "address.province",
+        max: 80,
+    },
 ];
 
 fn input_value<'a>(input: &'a BusinessProfileInput, field: &str) -> &'a str {
@@ -194,7 +224,11 @@ pub fn missing_fields(p: &BusinessProfile) -> Vec<FieldError> {
         ("taxId", &p.tax_id, Some(validation::validate_tax_id)),
         ("phone", &p.phone, Some(validation::validate_phone)),
         ("address.street", &p.address.street, None),
-        ("address.postalCode", &p.address.postal_code, Some(validation::validate_postal_code)),
+        (
+            "address.postalCode",
+            &p.address.postal_code,
+            Some(validation::validate_postal_code),
+        ),
         ("address.city", &p.address.city, None),
         ("address.province", &p.address.province, None),
     ];
@@ -260,7 +294,10 @@ mod tests {
         let mut i = input();
         i.address.city = "x".repeat(81);
         i.vat_rate_percent = "100,01".into();
-        let codes: Vec<_> = hard_errors(&i).into_iter().map(|e| (e.field, e.code)).collect();
+        let codes: Vec<_> = hard_errors(&i)
+            .into_iter()
+            .map(|e| (e.field, e.code))
+            .collect();
         assert_eq!(
             codes,
             vec![

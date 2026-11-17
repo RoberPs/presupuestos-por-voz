@@ -17,7 +17,11 @@ const MAX_INT_DIGITS: usize = 12;
 
 /// Convierte un texto es-ES en centésimas (con signo).
 fn parse_hundredths(input: &str) -> Result<i64, DecimalError> {
-    let s: String = input.trim().chars().filter(|c| !c.is_whitespace()).collect();
+    let s: String = input
+        .trim()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
     if s.is_empty() {
         return Err(DecimalError::Empty);
     }
@@ -25,7 +29,11 @@ fn parse_hundredths(input: &str) -> Result<i64, DecimalError> {
         Some(rest) => (true, rest),
         None => (false, s.strip_prefix('+').unwrap_or(&s)),
     };
-    if body.is_empty() || !body.chars().all(|c| c.is_ascii_digit() || c == ',' || c == '.') {
+    if body.is_empty()
+        || !body
+            .chars()
+            .all(|c| c.is_ascii_digit() || c == ',' || c == '.')
+    {
         return Err(DecimalError::Format);
     }
 
@@ -59,7 +67,7 @@ fn parse_hundredths(input: &str) -> Result<i64, DecimalError> {
     let int_digits = parse_grouped_int(int_part)?;
     let cents_part = match dec_part {
         None => 0,
-        Some(d) if d.is_empty() => return Err(DecimalError::Format),
+        Some("") => return Err(DecimalError::Format),
         Some(d) if d.len() > 2 => return Err(DecimalError::TooManyDecimals),
         Some(d) => {
             let v: i64 = d.parse().map_err(|_| DecimalError::Format)?;
@@ -128,7 +136,7 @@ fn format_hundredths(value: i64) -> String {
     let dec = abs % 100;
     let mut grouped = String::with_capacity(int.len() + int.len() / 3);
     for (i, c) in int.chars().enumerate() {
-        if i > 0 && (int.len() - i) % 3 == 0 {
+        if i > 0 && (int.len() - i).is_multiple_of(3) {
             grouped.push('.');
         }
         grouped.push(c);
@@ -155,8 +163,14 @@ mod tests {
         assert_eq!(parse_price_cents(""), Err(ErrorCode::PriceRequired));
         assert_eq!(parse_price_cents("   "), Err(ErrorCode::PriceRequired));
         assert_eq!(parse_price_cents("abc"), Err(ErrorCode::PriceInvalidFormat));
-        assert_eq!(parse_price_cents("12,3,4"), Err(ErrorCode::PriceInvalidFormat));
-        assert_eq!(parse_price_cents("12,345"), Err(ErrorCode::PriceTooManyDecimals));
+        assert_eq!(
+            parse_price_cents("12,3,4"),
+            Err(ErrorCode::PriceInvalidFormat)
+        );
+        assert_eq!(
+            parse_price_cents("12,345"),
+            Err(ErrorCode::PriceTooManyDecimals)
+        );
         assert_eq!(parse_price_cents("0"), Err(ErrorCode::PriceNotPositive));
         assert_eq!(parse_price_cents("0,00"), Err(ErrorCode::PriceNotPositive));
         assert_eq!(parse_price_cents("-5"), Err(ErrorCode::PriceNotPositive));
@@ -174,10 +188,19 @@ mod tests {
         assert_eq!(parse_price_cents("1.234.567"), Ok(123_456_700));
         assert_eq!(parse_price_cents("12,"), Err(ErrorCode::PriceInvalidFormat));
         assert_eq!(parse_price_cents(",5"), Err(ErrorCode::PriceInvalidFormat));
-        assert_eq!(parse_price_cents("12.3456"), Err(ErrorCode::PriceInvalidFormat));
-        assert_eq!(parse_price_cents("1.23.4"), Err(ErrorCode::PriceInvalidFormat));
+        assert_eq!(
+            parse_price_cents("12.3456"),
+            Err(ErrorCode::PriceInvalidFormat)
+        );
+        assert_eq!(
+            parse_price_cents("1.23.4"),
+            Err(ErrorCode::PriceInvalidFormat)
+        );
         assert_eq!(parse_price_cents("12€"), Err(ErrorCode::PriceInvalidFormat));
-        assert_eq!(parse_price_cents("9999999999999999"), Err(ErrorCode::PriceInvalidFormat));
+        assert_eq!(
+            parse_price_cents("9999999999999999"),
+            Err(ErrorCode::PriceInvalidFormat)
+        );
         assert_eq!(parse_price_cents("0,01"), Ok(1));
     }
 
@@ -200,7 +223,7 @@ mod tests {
         assert_eq!(format_eur(123456), "1.234,56 €");
         assert_eq!(format_eur(4550), "45,50 €");
         assert_eq!(format_eur(5), "0,05 €");
-        assert_eq!(format_eur(123_456_789_00), "123.456.789,00 €");
+        assert_eq!(format_eur(12_345_678_900), "123.456.789,00 €");
         assert_eq!(format_percent_bp(2100), "21,00");
         assert_eq!(format_percent_bp(0), "0,00");
         assert_eq!(format_percent_bp(10_000), "100,00");

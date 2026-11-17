@@ -3,9 +3,7 @@
 use std::path::Path;
 
 use crate::domain::money;
-use crate::domain::profile::{
-    self, BusinessProfile, BusinessProfileInput, BusinessProfileView,
-};
+use crate::domain::profile::{self, BusinessProfile, BusinessProfileInput, BusinessProfileView};
 use crate::error::{AppError, FieldError};
 use crate::services::logo_service;
 use crate::state::AppState;
@@ -13,13 +11,16 @@ use crate::storage::profile_repo;
 
 pub fn build_view(data_dir: &Path, p: BusinessProfile) -> BusinessProfileView {
     let missing = profile::missing_fields(&p);
-    let logo = p.logo.as_ref().and_then(|meta| match logo_service::logo_view(data_dir, meta) {
-        Ok(view) => Some(view),
-        Err(_) => {
-            log::error!("No se encuentra el archivo del logo: {}", meta.file);
-            None
-        }
-    });
+    let logo = p
+        .logo
+        .as_ref()
+        .and_then(|meta| match logo_service::logo_view(data_dir, meta) {
+            Ok(view) => Some(view),
+            Err(_) => {
+                log::error!("No se encuentra el archivo del logo: {}", meta.file);
+                None
+            }
+        });
     BusinessProfileView {
         trade_name: p.trade_name,
         legal_name: p.legal_name,

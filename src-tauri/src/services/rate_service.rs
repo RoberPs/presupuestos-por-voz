@@ -33,7 +33,10 @@ fn duplicate_error(tx: &Transaction<'_>, existing_id: i64) -> AppError {
         ),
         _ => "Ya existe una tarifa con ese concepto y esa unidad.".to_string(),
     };
-    AppError::DuplicateRate { existing_rate_id: existing_id, message }
+    AppError::DuplicateRate {
+        existing_rate_id: existing_id,
+        message,
+    }
 }
 
 fn resolve_unit(tx: &Transaction<'_>, v: &ValidRate) -> Result<i64, AppError> {
@@ -65,10 +68,8 @@ fn write(state: &AppState, id: Option<i64>, input: RateInput) -> Result<RateView
 
     let written = match id {
         None => rate_repo::insert(&tx, &v.concept, &v.concept_norm, unit_id, v.price_cents),
-        Some(id) => {
-            rate_repo::update(&tx, id, &v.concept, &v.concept_norm, unit_id, v.price_cents)
-                .map(|_| id)
-        }
+        Some(id) => rate_repo::update(&tx, id, &v.concept, &v.concept_norm, unit_id, v.price_cents)
+            .map(|_| id),
     };
     let rate_id = match written {
         Ok(rate_id) => rate_id,

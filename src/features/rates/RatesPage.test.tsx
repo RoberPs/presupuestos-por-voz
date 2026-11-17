@@ -67,7 +67,9 @@ describe("RatesPage (US2)", () => {
     await user.click(within(rowFor("Pintura")).getByRole("button", { name: "Borrar Pintura" }));
     dialog = await screen.findByRole("dialog", { name: "¿Borrar la tarifa?" });
     await user.click(within(dialog).getByRole("button", { name: "Borrar" }));
-    await waitFor(() => expect(screen.queryByRole("cell", { name: "Pintura" })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole("cell", { name: "Pintura" })).not.toBeInTheDocument(),
+    );
     expect(await screen.findByText("Aún no tienes tarifas")).toBeInTheDocument();
   });
 

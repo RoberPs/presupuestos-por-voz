@@ -21,7 +21,9 @@ export const es = {
   },
   incompleteBanner: {
     message: (n: number) =>
-      n === 1 ? "Tu perfil está incompleto: falta 1 dato" : `Tu perfil está incompleto: faltan ${n} datos`,
+      n === 1
+        ? "Tu perfil está incompleto: falta 1 dato"
+        : `Tu perfil está incompleto: faltan ${n} datos`,
     noProfile: "Aún no has rellenado los datos de tu negocio",
     action: "Completar ahora",
   },
@@ -90,12 +92,18 @@ export const es = {
     emptyTitle: "Aún no tienes tarifas",
     emptyMessage: "Crea tu primera tarifa con el concepto, la unidad y el precio.",
     createFirst: "Crear primera tarifa",
-    columns: { concept: "Concepto", unit: "Unidad", price: "Precio (sin IVA)", actions: "Acciones" },
+    columns: {
+      concept: "Concepto",
+      unit: "Unidad",
+      price: "Precio (sin IVA)",
+      actions: "Acciones",
+    },
     created: "Tarifa creada",
     updated: "Tarifa guardada",
     deleted: "Tarifa borrada",
     deleteConfirmTitle: "¿Borrar la tarifa?",
-    deleteConfirmMessage: (concept: string) => `¿Borrar la tarifa «${concept}»? No se puede deshacer.`,
+    deleteConfirmMessage: (concept: string) =>
+      `¿Borrar la tarifa «${concept}»? No se puede deshacer.`,
     editAria: (concept: string) => `Editar ${concept}`,
     deleteAria: (concept: string) => `Borrar ${concept}`,
     search: {

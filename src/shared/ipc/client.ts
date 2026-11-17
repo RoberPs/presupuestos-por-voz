@@ -31,8 +31,7 @@ export const logoRemove = () => invoke<BusinessProfileView>("logo_remove");
 
 export const unitsList = () => invoke<Unit[]>("units_list");
 
-export const ratesList = (query?: string) =>
-  invoke<Rate[]>("rates_list", { query: query ?? null });
+export const ratesList = (query?: string) => invoke<Rate[]>("rates_list", { query: query ?? null });
 export const ratesCreate = (input: RateInput) => invoke<Rate>("rates_create", { input });
 export const ratesUpdate = (id: number, input: RateInput) =>
   invoke<Rate>("rates_update", { id, input });

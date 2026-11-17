@@ -3,7 +3,11 @@ use rusqlite::{params, Connection};
 
 fn assert_schema(conn: &Connection) {
     let predefined: i64 = conn
-        .query_row("SELECT COUNT(*) FROM units WHERE is_predefined = 1", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM units WHERE is_predefined = 1",
+            [],
+            |r| r.get(0),
+        )
         .unwrap();
     assert_eq!(predefined, 5);
 
@@ -34,11 +38,15 @@ fn assert_schema(conn: &Connection) {
     assert!(fk.is_err());
 
     // una sola fila de perfil
-    conn.execute("INSERT INTO business_profile (id) VALUES (1)", []).unwrap();
-    assert!(conn.execute("INSERT INTO business_profile (id) VALUES (2)", []).is_err());
+    conn.execute("INSERT INTO business_profile (id) VALUES (1)", [])
+        .unwrap();
+    assert!(conn
+        .execute("INSERT INTO business_profile (id) VALUES (2)", [])
+        .is_err());
 
-    let vat: i64 =
-        conn.query_row("SELECT vat_rate_bp FROM business_profile", [], |r| r.get(0)).unwrap();
+    let vat: i64 = conn
+        .query_row("SELECT vat_rate_bp FROM business_profile", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(vat, 2100);
 }
 
@@ -54,11 +62,15 @@ fn migrations_apply_on_file_and_reopen() {
     {
         let conn = db::open(dir.path()).unwrap();
         assert_schema(&conn);
-        let mode: String = conn.query_row("PRAGMA journal_mode", [], |r| r.get(0)).unwrap();
+        let mode: String = conn
+            .query_row("PRAGMA journal_mode", [], |r| r.get(0))
+            .unwrap();
         assert_eq!(mode.to_lowercase(), "wal");
     }
     // Reabrir no vuelve a aplicar migraciones ni pierde datos
     let conn = db::open(dir.path()).unwrap();
-    let n: i64 = conn.query_row("SELECT COUNT(*) FROM rates", [], |r| r.get(0)).unwrap();
+    let n: i64 = conn
+        .query_row("SELECT COUNT(*) FROM rates", [], |r| r.get(0))
+        .unwrap();
     assert_eq!(n, 1);
 }

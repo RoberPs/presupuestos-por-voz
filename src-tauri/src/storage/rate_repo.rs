@@ -12,7 +12,11 @@ fn from_row(r: &Row<'_>) -> rusqlite::Result<RateView> {
     Ok(RateView::new(
         r.get(0)?,
         r.get(1)?,
-        UnitView { id: r.get(3)?, label: r.get(4)?, is_predefined: r.get::<_, i64>(5)? == 1 },
+        UnitView {
+            id: r.get(3)?,
+            label: r.get(4)?,
+            is_predefined: r.get::<_, i64>(5)? == 1,
+        },
         r.get(2)?,
     ))
 }
@@ -33,7 +37,8 @@ pub fn search(conn: &Connection, norm_query: &str) -> rusqlite::Result<Vec<RateV
 }
 
 pub fn get(conn: &Connection, id: i64) -> rusqlite::Result<Option<RateView>> {
-    conn.query_row(&format!("{SELECT} WHERE r.id = ?1"), [id], from_row).optional()
+    conn.query_row(&format!("{SELECT} WHERE r.id = ?1"), [id], from_row)
+        .optional()
 }
 
 pub fn find_duplicate(

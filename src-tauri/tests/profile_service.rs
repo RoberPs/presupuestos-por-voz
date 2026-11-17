@@ -18,7 +18,11 @@ fn empty_draft_is_saved_as_incomplete_with_exact_missing_fields() {
     let state = state_in(dir.path());
     let view = profile_service::save_profile(&state, empty_input()).unwrap();
     assert_eq!(view.status, ProfileStatus::Incomplete);
-    let fields: Vec<&str> = view.missing_fields.iter().map(|f| f.field.as_str()).collect();
+    let fields: Vec<&str> = view
+        .missing_fields
+        .iter()
+        .map(|f| f.field.as_str())
+        .collect();
     assert_eq!(
         fields,
         vec![
@@ -31,7 +35,10 @@ fn empty_draft_is_saved_as_incomplete_with_exact_missing_fields() {
             "address.province"
         ]
     );
-    assert!(view.missing_fields.iter().all(|f| f.code == ErrorCode::Required));
+    assert!(view
+        .missing_fields
+        .iter()
+        .all(|f| f.code == ErrorCode::Required));
 }
 
 #[test]

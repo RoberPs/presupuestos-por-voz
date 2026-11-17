@@ -3,7 +3,12 @@ import type { AppError, Rate, RateInput, Unit } from "../shared/ipc/types";
 import { profileFixture } from "./fixtures";
 
 const norm = (s: string) =>
-  s.normalize("NFD").replace(/\p{Mn}/gu, "").toLowerCase().trim().replace(/\s+/g, " ");
+  s
+    .normalize("NFD")
+    .replace(/\p{Mn}/gu, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
 
 const eur = (cents: number) =>
   `${(cents / 100).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: true })} €`;
@@ -28,7 +33,13 @@ export function mockRatesBackend(initial: { concept: string; unit: string; price
   };
   const build = (id: number, input: RateInput): Rate => {
     const cents = Math.round(Number(input.price.replace(".", "").replace(",", ".")) * 100);
-    return { id, concept: input.concept.trim(), unit: unitFor(input.unitLabel), priceCents: cents, priceDisplay: eur(cents) };
+    return {
+      id,
+      concept: input.concept.trim(),
+      unit: unitFor(input.unitLabel),
+      priceCents: cents,
+      priceDisplay: eur(cents),
+    };
   };
   const sorted = () => [...rates].sort((a, b) => norm(a.concept).localeCompare(norm(b.concept)));
 
@@ -46,7 +57,8 @@ export function mockRatesBackend(initial: { concept: string; unit: string; price
     rates_create: (args) => {
       const input = args.input as RateInput;
       const dup = rates.find(
-        (r) => norm(r.concept) === norm(input.concept) && norm(r.unit.label) === norm(input.unitLabel),
+        (r) =>
+          norm(r.concept) === norm(input.concept) && norm(r.unit.label) === norm(input.unitLabel),
       );
       if (dup) {
         const err: AppError = {

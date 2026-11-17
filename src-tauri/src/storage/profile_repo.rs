@@ -38,7 +38,8 @@ fn from_row(r: &Row<'_>) -> rusqlite::Result<BusinessProfile> {
 }
 
 pub fn get(conn: &Connection) -> rusqlite::Result<Option<BusinessProfile>> {
-    conn.query_row("SELECT * FROM business_profile WHERE id = 1", [], from_row).optional()
+    conn.query_row("SELECT * FROM business_profile WHERE id = 1", [], from_row)
+        .optional()
 }
 
 /// Crea la fila con valores vacíos si aún no existe (borrador).

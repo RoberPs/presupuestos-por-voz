@@ -37,7 +37,9 @@
   --color-info-text: #123a6e;
   --color-success-bg: #e3f4e8;
   --color-success-text: #1b5e32;
-  --color-focus: #ffbf47;
+  /* Anillo doble: oscuro (≥ 3:1 sobre fondos claros) con halo claro (≥ 3:1 sobre el azul) */
+  --color-focus: #0b2a55;
+  --color-focus-halo: #ffbf47;
 
   --shadow-dialog: 0 10px 40px rgba(0, 0, 0, 0.25);
 }

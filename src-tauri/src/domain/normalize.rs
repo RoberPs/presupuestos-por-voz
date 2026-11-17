@@ -5,8 +5,11 @@ use unicode_normalization::UnicodeNormalization;
 
 /// NFD, sin marcas diacríticas, minúsculas, sin espacios sobrantes y con los internos colapsados.
 pub fn normalize(s: &str) -> String {
-    let folded: String =
-        s.nfd().filter(|c| !is_combining_mark(*c)).flat_map(char::to_lowercase).collect();
+    let folded: String = s
+        .nfd()
+        .filter(|c| !is_combining_mark(*c))
+        .flat_map(char::to_lowercase)
+        .collect();
     collapse_spaces(&folded)
 }
 
@@ -33,7 +36,10 @@ mod tests {
 
     #[test]
     fn normalizes_accents_case_and_spaces() {
-        assert_eq!(normalize("  Instalación  de GRIFO "), "instalacion de grifo");
+        assert_eq!(
+            normalize("  Instalación  de GRIFO "),
+            "instalacion de grifo"
+        );
         assert_eq!(normalize("Pintura"), normalize("pintura"));
         assert_eq!(normalize("ÁBACO\tñu"), "abaco nu");
     }

@@ -19,7 +19,10 @@ fn rejects_files_over_5_mb() {
     let mut bytes = vec![0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
     bytes.resize(6 * 1024 * 1024, 0);
     std::fs::write(&path, bytes).unwrap();
-    assert_eq!(rejected_code(logo_service::validate_logo_file(&path)), LogoRejectCode::LogoTooLarge);
+    assert_eq!(
+        rejected_code(logo_service::validate_logo_file(&path)),
+        LogoRejectCode::LogoTooLarge
+    );
 }
 
 #[test]
@@ -95,14 +98,22 @@ fn rejection_keeps_previous_logo() {
     let good = write_png_rgba(src.path(), "bueno.png", 300, 300);
     logo_service::set_logo(&state, &good).unwrap();
     let before_files = branding_files(data.path());
-    let before = profile_service::get_profile(&state).unwrap().unwrap().logo.unwrap();
+    let before = profile_service::get_profile(&state)
+        .unwrap()
+        .unwrap()
+        .logo
+        .unwrap();
 
     let bad = src.path().join("malo.png");
     std::fs::write(&bad, "no").unwrap();
     assert!(logo_service::set_logo(&state, &bad).is_err());
 
     assert_eq!(branding_files(data.path()), before_files);
-    let after = profile_service::get_profile(&state).unwrap().unwrap().logo.unwrap();
+    let after = profile_service::get_profile(&state)
+        .unwrap()
+        .unwrap()
+        .logo
+        .unwrap();
     assert_eq!(after, before);
 }
 
@@ -130,5 +141,9 @@ fn copy_survives_original_being_deleted() {
     std::fs::remove_file(&png).unwrap();
 
     let state = reopen(state);
-    assert!(profile_service::get_profile(&state).unwrap().unwrap().logo.is_some());
+    assert!(profile_service::get_profile(&state)
+        .unwrap()
+        .unwrap()
+        .logo
+        .is_some());
 }

@@ -14,12 +14,18 @@ export function App() {
             <p className={styles.brand}>{es.app.name}</p>
             <ul>
               <li>
-                <NavLink to="/negocio" className={({ isActive }) => (isActive ? styles.active : "")}>
+                <NavLink
+                  to="/negocio"
+                  className={({ isActive }) => (isActive ? styles.active : "")}
+                >
                   {es.app.nav.business}
                 </NavLink>
               </li>
               <li>
-                <NavLink to="/tarifas" className={({ isActive }) => (isActive ? styles.active : "")}>
+                <NavLink
+                  to="/tarifas"
+                  className={({ isActive }) => (isActive ? styles.active : "")}
+                >
                   {es.app.nav.rates}
                 </NavLink>
               </li>

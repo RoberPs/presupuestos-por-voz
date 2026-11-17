@@ -7,8 +7,10 @@ fn is_spanish_number(digits: &str) -> bool {
 /// Español de 9 cifras (6/7/8/9) con `+34`/`0034` opcional, o internacional de 6 a 15 cifras.
 /// Devuelve el número compacto (sin separadores).
 pub fn validate_phone(s: &str) -> Result<String, ErrorCode> {
-    let compact: String =
-        s.chars().filter(|c| !c.is_whitespace() && !matches!(c, '-' | '.' | '(' | ')')).collect();
+    let compact: String = s
+        .chars()
+        .filter(|c| !c.is_whitespace() && !matches!(c, '-' | '.' | '(' | ')'))
+        .collect();
 
     let (international, digits) = if let Some(rest) = compact.strip_prefix('+') {
         (true, rest)

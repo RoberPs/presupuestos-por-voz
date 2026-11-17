@@ -12,13 +12,21 @@ use rusqlite::params;
 fn add(state: &AppState, concept: &str, unit: &str) {
     rate_service::create(
         state,
-        RateInput { concept: concept.into(), unit_label: unit.into(), price: "10".into() },
+        RateInput {
+            concept: concept.into(),
+            unit_label: unit.into(),
+            price: "10".into(),
+        },
     )
     .unwrap();
 }
 
 fn concepts(state: &AppState, q: &str) -> Vec<String> {
-    rate_service::list(state, Some(q.into())).unwrap().into_iter().map(|r| r.concept).collect()
+    rate_service::list(state, Some(q.into()))
+        .unwrap()
+        .into_iter()
+        .map(|r| r.concept)
+        .collect()
 }
 
 #[test]
@@ -29,9 +37,15 @@ fn search_ignores_case_and_accents() {
     add(&state, "Cambio de grifo", "unidad");
     add(&state, "Pintura de pared", "m²");
 
-    assert_eq!(concepts(&state, "grifo"), vec!["Cambio de grifo", "Instalación de grifo"]);
+    assert_eq!(
+        concepts(&state, "grifo"),
+        vec!["Cambio de grifo", "Instalación de grifo"]
+    );
     assert_eq!(concepts(&state, "GRIFO").len(), 2);
-    assert_eq!(concepts(&state, "instalacion"), vec!["Instalación de grifo"]);
+    assert_eq!(
+        concepts(&state, "instalacion"),
+        vec!["Instalación de grifo"]
+    );
     assert_eq!(concepts(&state, "  INSTALACIÓN  de ").len(), 1);
     assert!(concepts(&state, "zzz").is_empty());
 }
@@ -91,6 +105,13 @@ fn rates_search_500() {
     let elapsed = start.elapsed();
 
     assert_eq!(result.len(), 100);
-    let limit = if cfg!(debug_assertions) { Duration::from_millis(250) } else { Duration::from_millis(50) };
-    assert!(elapsed < limit, "la búsqueda ha tardado {elapsed:?} (límite {limit:?})");
+    let limit = if cfg!(debug_assertions) {
+        Duration::from_millis(250)
+    } else {
+        Duration::from_millis(50)
+    };
+    assert!(
+        elapsed < limit,
+        "la búsqueda ha tardado {elapsed:?} (límite {limit:?})"
+    );
 }

@@ -33,7 +33,9 @@ describe("BusinessProfilePage (US1)", () => {
     setupIPC({ profile_get: () => null });
     renderApp("/negocio");
     await user.click(await screen.findByRole("button", { name: "Saltar por ahora" }));
-    expect(await screen.findByText(/Aún no has rellenado los datos de tu negocio/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Aún no has rellenado los datos de tu negocio/),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Completar ahora" })).toBeInTheDocument();
     expect(screen.queryByText(/Bienvenido/)).not.toBeInTheDocument();
   });
@@ -185,7 +187,9 @@ describe("BusinessProfilePage (US1)", () => {
         profileFixture({
           status: "incomplete",
           phone: "",
-          missingFields: [{ field: "phone", code: "REQUIRED", message: "Este dato es obligatorio." }],
+          missingFields: [
+            { field: "phone", code: "REQUIRED", message: "Este dato es obligatorio." },
+          ],
         }),
     });
     renderApp("/tarifas");

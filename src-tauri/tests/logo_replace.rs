@@ -17,7 +17,11 @@ fn replacing_logo_keeps_only_the_new_file() {
     let files = branding_files(data.path());
     assert_eq!(files.len(), 1, "{files:?}");
     assert!(files[0].ends_with(".jpg"));
-    let logo = profile_service::get_profile(&state).unwrap().unwrap().logo.unwrap();
+    let logo = profile_service::get_profile(&state)
+        .unwrap()
+        .unwrap()
+        .logo
+        .unwrap();
     assert_eq!(logo.mime, "image/jpeg");
     assert_eq!((logo.width_px, logo.height_px), (800, 400));
 }
@@ -31,7 +35,11 @@ fn setting_the_same_logo_twice_keeps_the_file() {
     logo_service::set_logo(&state, &a).unwrap();
     logo_service::set_logo(&state, &a).unwrap();
     assert_eq!(branding_files(data.path()).len(), 1);
-    assert!(profile_service::get_profile(&state).unwrap().unwrap().logo.is_some());
+    assert!(profile_service::get_profile(&state)
+        .unwrap()
+        .unwrap()
+        .logo
+        .is_some());
 }
 
 #[test]
@@ -77,7 +85,12 @@ fn invalid_replacement_keeps_previous_logo() {
     assert!(logo_service::set_logo(&state, &bad).is_err());
     assert_eq!(branding_files(data.path()), before);
     assert_eq!(
-        profile_service::get_profile(&state).unwrap().unwrap().logo.unwrap().mime,
+        profile_service::get_profile(&state)
+            .unwrap()
+            .unwrap()
+            .logo
+            .unwrap()
+            .mime,
         "image/png"
     );
 }
@@ -112,7 +125,10 @@ fn cleanup_orphans_without_branding_dir_is_noop() {
     let data = tempfile::tempdir().unwrap();
     let state = state_in(data.path());
     let conn = state.conn().unwrap();
-    assert_eq!(logo_service::cleanup_orphans(data.path(), &conn).unwrap(), 0);
+    assert_eq!(
+        logo_service::cleanup_orphans(data.path(), &conn).unwrap(),
+        0
+    );
 }
 
 #[test]

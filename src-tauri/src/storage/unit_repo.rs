@@ -13,14 +13,22 @@ pub fn list(conn: &Connection) -> rusqlite::Result<Vec<UnitView>> {
                   label_norm, label",
     )?;
     let rows = stmt.query_map([], |r| {
-        Ok(UnitView { id: r.get(0)?, label: r.get(1)?, is_predefined: r.get::<_, i64>(2)? == 1 })
+        Ok(UnitView {
+            id: r.get(0)?,
+            label: r.get(1)?,
+            is_predefined: r.get::<_, i64>(2)? == 1,
+        })
     })?;
     rows.collect()
 }
 
 pub fn find_by_norm(conn: &Connection, label_norm: &str) -> rusqlite::Result<Option<i64>> {
-    conn.query_row("SELECT id FROM units WHERE label_norm = ?1", [label_norm], |r| r.get(0))
-        .optional()
+    conn.query_row(
+        "SELECT id FROM units WHERE label_norm = ?1",
+        [label_norm],
+        |r| r.get(0),
+    )
+    .optional()
 }
 
 pub fn insert_custom(tx: &Transaction<'_>, label: &str, label_norm: &str) -> rusqlite::Result<i64> {

@@ -30,7 +30,10 @@ fn dni_letter(number: u32) -> u8 {
 fn is_dni(id: &str) -> bool {
     let (num, letter) = id.split_at(8);
     num.bytes().all(|b| b.is_ascii_digit())
-        && num.parse::<u32>().map(|n| dni_letter(n) == letter.as_bytes()[0]).unwrap_or(false)
+        && num
+            .parse::<u32>()
+            .map(|n| dni_letter(n) == letter.as_bytes()[0])
+            .unwrap_or(false)
 }
 
 fn is_nie(id: &str) -> bool {
@@ -42,7 +45,10 @@ fn is_nie(id: &str) -> bool {
     };
     let number = format!("{prefix}{}", &id[1..8]);
     number.bytes().all(|b| b.is_ascii_digit())
-        && number.parse::<u32>().map(|n| dni_letter(n) == id.as_bytes()[8]).unwrap_or(false)
+        && number
+            .parse::<u32>()
+            .map(|n| dni_letter(n) == id.as_bytes()[8])
+            .unwrap_or(false)
 }
 
 fn is_cif(id: &str) -> bool {

@@ -7,7 +7,8 @@ import type { AppError, Rate, RateInput, Unit } from "../../shared/ipc/types";
 import { UnitSelect } from "./UnitSelect";
 import styles from "./RateFormDialog.module.css";
 
-export type RateDialogMode = { kind: "create"; initialConcept?: string } | { kind: "edit"; rate: Rate };
+export type RateDialogMode =
+  { kind: "create"; initialConcept?: string } | { kind: "edit"; rate: Rate };
 
 type Props = {
   mode: RateDialogMode | null;

@@ -10,13 +10,21 @@ use base64::Engine;
 pub const BRANDING_DIR: &str = "branding";
 
 fn temp_name() -> String {
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
     format!(".tmp-{}-{nanos}", std::process::id())
 }
 
 /// Escribe `bytes` en un temporal, hace `fsync` y lo renombra a `branding/logo-<sha8>.<ext>`.
 /// Devuelve la ruta relativa a `data_dir` (con `/`).
-pub fn write_atomic(data_dir: &Path, bytes: &[u8], sha256_hex: &str, ext: &str) -> io::Result<String> {
+pub fn write_atomic(
+    data_dir: &Path,
+    bytes: &[u8],
+    sha256_hex: &str,
+    ext: &str,
+) -> io::Result<String> {
     let dir = data_dir.join(BRANDING_DIR);
     fs::create_dir_all(&dir)?;
     let file_name = format!("logo-{}.{ext}", &sha256_hex[..8]);

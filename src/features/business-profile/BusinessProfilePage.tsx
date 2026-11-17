@@ -80,7 +80,8 @@ export function BusinessProfilePage() {
   const { skipGuided } = useProfileContext();
   const { showToast } = useToast();
   const bp = useBusinessProfile();
-  const { profile, loading, fieldErrors, setFieldErrors, saving, generalError, save, validate } = bp;
+  const { profile, loading, fieldErrors, setFieldErrors, saving, generalError, save, validate } =
+    bp;
 
   const form = useForm<ProfileFormValues>({ defaultValues: fromView(null) });
   const { register, handleSubmit, reset, watch, getFieldState, getValues, formState } = form;
@@ -275,7 +276,13 @@ export function BusinessProfilePage() {
   );
 }
 
-function ProfilePreview({ values, logoUrl }: { values: ProfileFormValues; logoUrl: string | null }) {
+function ProfilePreview({
+  values,
+  logoUrl,
+}: {
+  values: ProfileFormValues;
+  logoUrl: string | null;
+}) {
   const a = values.address;
   const cityLine = [a.postalCode, a.city].filter(Boolean).join(" ");
   const placeLine = [cityLine, a.province].filter(Boolean).join(" · ");

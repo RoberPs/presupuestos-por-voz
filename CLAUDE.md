@@ -11,9 +11,10 @@ dictada por voz. Un solo usuario por instalación, sin conocimientos técnicos.
 ## Estado actual
 
 - El proyecto se desarrolla con **Spec Kit** (Spec-Driven Development, v0.16.5, scripts PowerShell).
-- **Todavía no hay código fuente.** Solo existen la constitución y los artefactos de la primera feature.
 - Feature en curso: `001-business-profile-rates` (perfil del negocio, logo y tarifas), en la rama del
-  mismo nombre. Spec, plan y tareas ya están hechos; el siguiente paso es `/speckit-implement`.
+  mismo nombre. Implementadas US1–US4. Consulta `tasks.md` para ver las tareas pendientes de Polish.
+- Equipo de desarrollo con poca memoria: compila Rust con `-j 2` (o `$env:CARGO_BUILD_JOBS = 2`).
+  Con más procesos falla con el error 1455 (archivo de paginación).
 - Fuera del alcance de la feature 001: dictado por voz, presupuestos y PDF, importar desde Excel,
   varios negocios o usuarios, exportación y copias de seguridad.
 
@@ -66,7 +67,7 @@ Las claves de API de terceros las aporta el usuario y se guardan localmente de f
 - Datos: SQLite en modo WAL dentro de `app_data_dir` (`presupuestos.db`) y logo en `app_data_dir/branding/`.
 - Plataforma principal: Windows 10/11 x64 (WebView2).
 
-## Estructura prevista
+## Estructura
 
 ```text
 src/                     # Interfaz React, organizada por features
@@ -84,7 +85,7 @@ src-tauri/tests/         # pruebas de integración Rust (DB temporal)
 e2e/                     # WebdriverIO + tauri-driver
 ```
 
-## Comandos (previstos; disponibles cuando exista el esqueleto de T001–T003)
+## Comandos
 
 ```powershell
 npm install

@@ -46,7 +46,13 @@ pub struct RateView {
 
 impl RateView {
     pub fn new(id: i64, concept: String, unit: UnitView, price_cents: i64) -> Self {
-        Self { id, concept, unit, price_cents, price_display: money::format_eur(price_cents) }
+        Self {
+            id,
+            concept,
+            unit,
+            price_cents,
+            price_display: money::format_eur(price_cents),
+        }
     }
 }
 

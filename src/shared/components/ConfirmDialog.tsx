@@ -34,7 +34,8 @@ export function ConfirmDialog({ open, title, message, children, actions, onDismi
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const node = ref.current;
-    const first = node?.querySelector<HTMLElement>("[data-autofocus]") ??
+    const first =
+      node?.querySelector<HTMLElement>("[data-autofocus]") ??
       node?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
 
@@ -68,7 +69,10 @@ export function ConfirmDialog({ open, title, message, children, actions, onDismi
   if (!open) return null;
 
   return (
-    <div className={styles.backdrop} onMouseDown={(e) => e.target === e.currentTarget && onDismiss()}>
+    <div
+      className={styles.backdrop}
+      onMouseDown={(e) => e.target === e.currentTarget && onDismiss()}
+    >
       <div
         ref={ref}
         role="dialog"

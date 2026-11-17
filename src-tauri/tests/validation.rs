@@ -44,10 +44,22 @@ fn postal_code() {
     assert_eq!(validate_postal_code("28001"), Ok("28001".to_string()));
     assert_eq!(validate_postal_code(" 01001 "), Ok("01001".to_string()));
     assert_eq!(validate_postal_code("52080"), Ok("52080".to_string()));
-    assert_eq!(validate_postal_code("5300"), Err(ErrorCode::PostalCodeInvalid));
-    assert_eq!(validate_postal_code("53001"), Err(ErrorCode::PostalCodeInvalid));
-    assert_eq!(validate_postal_code("00123"), Err(ErrorCode::PostalCodeInvalid));
-    assert_eq!(validate_postal_code("2800A"), Err(ErrorCode::PostalCodeInvalid));
+    assert_eq!(
+        validate_postal_code("5300"),
+        Err(ErrorCode::PostalCodeInvalid)
+    );
+    assert_eq!(
+        validate_postal_code("53001"),
+        Err(ErrorCode::PostalCodeInvalid)
+    );
+    assert_eq!(
+        validate_postal_code("00123"),
+        Err(ErrorCode::PostalCodeInvalid)
+    );
+    assert_eq!(
+        validate_postal_code("2800A"),
+        Err(ErrorCode::PostalCodeInvalid)
+    );
 }
 
 #[test]
@@ -58,7 +70,10 @@ fn phone() {
     assert!(validate_phone("+44 20 7946 0958").is_ok());
     assert_eq!(validate_phone("12345"), Err(ErrorCode::PhoneInvalid));
     assert_eq!(validate_phone("500123456"), Err(ErrorCode::PhoneInvalid));
-    assert_eq!(validate_phone("+34 500123456"), Err(ErrorCode::PhoneInvalid));
+    assert_eq!(
+        validate_phone("+34 500123456"),
+        Err(ErrorCode::PhoneInvalid)
+    );
     assert_eq!(validate_phone("+1 23"), Err(ErrorCode::PhoneInvalid));
     assert_eq!(validate_phone("600abc456"), Err(ErrorCode::PhoneInvalid));
 }
