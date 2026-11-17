@@ -90,6 +90,9 @@ Con una lista larga de tarifas, el profesional escribe parte del concepto en un 
 - **Tarifa sin concepto o sin unidad**: no se puede guardar; la app señala los campos que faltan.
 - **Dos tarifas con el mismo concepto**: si ya existe una tarifa con el mismo concepto y la misma unidad (sin distinguir mayúsculas, tildes ni espacios sobrantes), la app impide guardarla e indica cuál es la tarifa existente para que el profesional la edite. El mismo concepto con distinta unidad (p. ej. "Pintura" por metro y por hora) sí se permite.
 - **Primer uso sin tarifas**: la lista vacía muestra un mensaje explicativo y un acceso directo para crear la primera tarifa.
+- **NIF/CIF, código postal, teléfono o email con formato incorrecto**: el campo se marca con un mensaje claro; el borrador se guarda, pero el perfil sigue "incompleto".
+- **Logo de baja resolución** (menos de 200 px en el lado más corto): se avisa de que puede verse borroso, pero se permite guardarlo.
+- **Primer arranque sin perfil**: se abre la configuración guiada de "Mi negocio"; si se salta, queda un aviso permanente de perfil incompleto.
 - **Datos del negocio incompletos**: la app permite guardar un borrador incompleto para no perder lo escrito, pero marca el perfil como "incompleto", señala los campos obligatorios que faltan y muestra un aviso visible hasta completarlo.
 - **Cierre inesperado de la app durante la edición**: los datos ya guardados no se corrompen ni se pierden.
 
@@ -99,9 +102,12 @@ Con una lista larga de tarifas, el profesional escribe parte del concepto en un 
 
 **Datos del negocio y logo**
 
-- **FR-001**: El sistema MUST permitir al profesional introducir y guardar los datos de su negocio. Campos obligatorios: nombre comercial, NIF/CIF, teléfono y dirección. Campos opcionales: razón social, email y web.
+- **FR-001**: El sistema MUST permitir al profesional introducir y guardar los datos de su negocio. Campos obligatorios: nombre comercial, NIF/CIF, teléfono y dirección. Campos opcionales: razón social, email y web. La dirección se compone de cuatro campos, todos obligatorios: calle y número, código postal, localidad y provincia.
+- **FR-001b**: El sistema MUST validar el formato de los datos: NIF/NIE/CIF español con su carácter de control correcto; código postal de 5 dígitos; teléfono de 9 dígitos con prefijo internacional opcional; email con formato válido si se rellena. Un dato con formato incorrecto se señala junto al campo con un mensaje claro y cuenta como "falta" para el estado completo/incompleto (el borrador se puede guardar igualmente, según FR-008).
+- **FR-001c**: En el primer arranque, sin perfil guardado, el sistema MUST abrir directamente la configuración de "Mi negocio" de forma guiada. El profesional MAY saltarla; en ese caso se muestra un aviso visible y permanente de perfil incompleto con acceso directo a completarlo.
 - **FR-002**: El sistema MUST permitir cargar un logo desde un archivo del equipo del usuario, aceptando solo formatos PNG y JPG de hasta 5 MB.
 - **FR-003**: El sistema MUST rechazar logos con formato no admitido, dañados o que superen el tamaño máximo, mostrando un mensaje comprensible y conservando el logo anterior.
+- **FR-003b**: Si el logo mide menos de 200 píxeles en su lado más corto, el sistema MUST avisar de que puede verse borroso, pero MUST permitir guardarlo. El logo se guarda sin recortar ni deformar y conserva la transparencia de los PNG.
 - **FR-004**: El sistema MUST mostrar una vista previa del logo y de los datos del negocio antes y después de guardar.
 - **FR-005**: El sistema MUST conservar los datos del negocio y el logo entre sesiones, de forma que al reabrir la app se muestren exactamente como se guardaron.
 - **FR-006**: El profesional MUST poder modificar cualquier dato del negocio, sustituir el logo por otro o quitarlo en cualquier momento.
@@ -112,7 +118,7 @@ Con una lista larga de tarifas, el profesional escribe parte del concepto en un 
 **Tarifas**
 
 - **FR-010**: El profesional MUST poder crear tarifas con concepto (texto obligatorio), unidad (obligatoria) y precio (obligatorio).
-- **FR-011**: El sistema MUST ofrecer una lista de unidades predefinidas (al menos: unidad, hora, metro, metro cuadrado, metro lineal) y permitir escribir una unidad personalizada.
+- **FR-011**: El sistema MUST ofrecer una lista de unidades predefinidas (al menos: unidad, hora, metro, metro cuadrado, metro lineal) y permitir escribir una unidad personalizada. Una unidad personalizada usada en una tarifa MUST quedar disponible en la lista de unidades para las tarifas siguientes.
 - **FR-012**: El sistema MUST rechazar tarifas sin precio, con precio igual a cero, negativo, no numérico o con más de dos decimales, indicando el motivo.
 - **FR-013**: El sistema MUST impedir guardar una tarifa con el mismo concepto y la misma unidad que otra existente (comparación sin distinguir mayúsculas, tildes ni espacios sobrantes) e indicar cuál es la tarifa existente.
 - **FR-014**: El profesional MUST poder editar el concepto, la unidad y el precio de una tarifa existente, aplicando las mismas validaciones que al crearla.
@@ -137,10 +143,10 @@ Con una lista larga de tarifas, el profesional escribe parte del concepto en un 
 
 ### Key Entities
 
-- **Perfil del negocio**: datos de identidad del profesional que aparecerán en sus presupuestos. Atributos: nombre comercial, razón social, identificación fiscal, teléfono, email, dirección, web, logo (opcional), moneda (euro, fija), tipo de IVA general (21 % por defecto), estado (completo / incompleto). Existe uno solo por instalación.
+- **Perfil del negocio**: datos de identidad del profesional que aparecerán en sus presupuestos. Atributos: nombre comercial, razón social, identificación fiscal (NIF/NIE/CIF), teléfono, email, dirección (calle y número, código postal, localidad, provincia), web, logo (opcional), moneda (euro, fija), tipo de IVA general (21 % por defecto), estado (completo / incompleto). Existe uno solo por instalación.
 - **Logo**: imagen que representa al negocio. Atributos: imagen, formato, tamaño. Pertenece al perfil del negocio; como máximo uno a la vez.
 - **Tarifa**: precio unitario de un trabajo o material. Atributos: concepto, unidad, precio. La combinación concepto + unidad es única. Las tarifas serán la fuente de los importes de los futuros presupuestos.
-- **Unidad**: forma de medir una tarifa (unidad, hora, metro, m², metro lineal o personalizada).
+- **Unidad**: forma de medir una tarifa (unidad, hora, metro, m², metro lineal o personalizada). Las unidades personalizadas se recuerdan para reutilizarlas.
 
 ## Success Criteria *(mandatory)*
 
@@ -167,6 +173,11 @@ Con una lista larga de tarifas, el profesional escribe parte del concepto en un 
 
 - Q: ¿Qué datos del negocio son obligatorios? → A: Nombre comercial, NIF/CIF, teléfono y dirección; opcionales: razón social, email y web.
 - Q: ¿Moneda y tratamiento del IVA? → A: Euros, precios de tarifa sin IVA y un tipo de IVA general configurable (21 % por defecto).
+- Q: ¿La dirección es un campo libre o va separada en partes? → A: Separada: calle y número, código postal, localidad y provincia, todos obligatorios.
+- Q: ¿Se valida el formato de NIF/CIF, código postal, teléfono y email? → A: Sí; con un formato incorrecto se avisa y el perfil sigue incompleto, pero el borrador se puede guardar.
+- Q: ¿Qué ocurre en el primer arranque sin perfil? → A: Se abre la configuración guiada de "Mi negocio"; se puede saltar y queda un aviso permanente.
+- Q: ¿Las unidades personalizadas se recuerdan para otras tarifas? → A: Sí, se añaden a la lista de unidades.
+- Q: ¿Qué pasa con un logo de baja resolución? → A: Por debajo de 200 px en el lado más corto se avisa, pero se permite guardarlo; no se recorta y se conserva la transparencia.
 - El mismo concepto con distinta unidad se considera una tarifa distinta y legítima.
 - Borrar una tarifa no afecta a presupuestos ya existentes; como la generación de presupuestos está fuera de alcance, esta relación se definirá en su propia feature.
 - La exportación y copia de seguridad de los datos (exigida por la constitución) se tratará en una feature aparte; esta feature solo garantiza su conservación local.
