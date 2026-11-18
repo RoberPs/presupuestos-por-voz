@@ -1,8 +1,94 @@
 //! Cantidades dictadas en cifras y en palabras, en centésimas enteras (research.md, R6).
 
+use std::ops::Range;
+
 use crate::domain::draft::units::UnitCatalog;
 use crate::domain::money::{parse_quantity_centi, MAX_QUANTITY_CENTI};
 use crate::domain::normalize::normalize;
+
+/// Medidas del material: «tubo de 20 mm» describe el tubo, no dice cuántos hay.
+fn dimension(word: &str) -> Option<&'static str> {
+    match word {
+        "mm" | "milimetro" | "milimetros" => Some("mm"),
+        "cm" | "centimetro" | "centimetros" => Some("cm"),
+        "pulgada" | "pulgadas" => Some("pulgada"),
+        _ => None,
+    }
+}
+
+/// Palabra de un concepto escrita de una única forma: «veinte milímetros» y «20mm» son «20 mm».
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CanonicalWord {
+    pub text: String,
+    /// Palabras originales de las que procede.
+    pub tokens: Range<usize>,
+}
+
+impl CanonicalWord {
+    pub fn is_number(&self) -> bool {
+        is_number_word(&self.text)
+    }
+}
+
+pub fn is_number_word(word: &str) -> bool {
+    word.starts_with(|c: char| c.is_ascii_digit())
+}
+
+/// Número o medida, que por sí solos no bastan para decir que dos conceptos se parecen.
+pub fn is_measure_word(word: &str) -> bool {
+    is_number_word(word) || dimension(word).is_some()
+}
+
+/// Unifica los números y las medidas de un concepto para poder compararlo.
+pub fn canonical_words(tokens: &[String]) -> Vec<CanonicalWord> {
+    let mut words = Vec::with_capacity(tokens.len());
+    let mut pos = 0;
+
+    while let Some(word) = tokens.get(pos) {
+        let single = pos..pos + 1;
+        let digits_end = word
+            .find(|c: char| !c.is_ascii_digit() && c != ',' && c != '.')
+            .unwrap_or(word.len());
+        let joined_measure = dimension(&word[digits_end..]).filter(|_| digits_end > 0);
+
+        if let Some(measure) = joined_measure {
+            for text in [&word[..digits_end], measure] {
+                words.push(CanonicalWord {
+                    text: text.to_string(),
+                    tokens: single.clone(),
+                });
+            }
+            pos += 1;
+        } else if let Some(measure) = dimension(word) {
+            words.push(CanonicalWord {
+                text: measure.to_string(),
+                tokens: single,
+            });
+            pos += 1;
+        } else if let Some((value, next)) = spoken_number(tokens, pos) {
+            words.push(CanonicalWord {
+                text: value.to_string(),
+                tokens: pos..next,
+            });
+            pos = next;
+        } else {
+            words.push(CanonicalWord {
+                text: word.clone(),
+                tokens: single,
+            });
+            pos += 1;
+        }
+    }
+    words
+}
+
+/// Número dicho con palabras. «Un» y «una» solo cuentan delante de una medida: suelen ser artículos.
+fn spoken_number(tokens: &[String], start: usize) -> Option<(i64, usize)> {
+    let (value, next) = words_at(tokens, start)?;
+    let is_article = next == start + 1 && matches!(tokens[start].as_str(), "un" | "una" | "uno");
+    let before_measure = tokens.get(next).is_some_and(|w| dimension(w).is_some());
+    (!is_article || before_measure).then_some((value, next))
+}
 
 /// Cantidad encontrada en `tokens[start..end]`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -245,6 +331,12 @@ fn match_at(tokens: &[String], start: usize, units: &UnitCatalog) -> Option<Quan
     }
 
     let (centi, next) = number_at(tokens, start)?;
+
+    // «20 mm» es una medida del material, salvo que el profesional use «mm» como unidad.
+    let is_dimension = tokens.get(next).is_some_and(|w| dimension(w).is_some());
+    if is_dimension && units.match_at(tokens, next).is_none() {
+        return None;
+    }
 
     // «un», «una» y «uno» suelen ser artículos: solo cuentan al empezar o delante de una unidad.
     if matches!(word, "un" | "una" | "uno")

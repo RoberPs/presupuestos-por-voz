@@ -1,7 +1,7 @@
 //! Genera el borrador completo a partir del texto. Es una función pura y determinista (FR-014).
 
 use crate::domain::draft::matcher::{RateIndex, RateMatch};
-use crate::domain::draft::parser::{parse_text, ParsedJob};
+use crate::domain::draft::parser::{parse_text_with, ParsedJob};
 use crate::domain::draft::units::UnitCatalog;
 use crate::domain::draft::{BuiltDraft, BuiltLine, DraftLine, PriceSource};
 use crate::domain::rate::{RateView, UnitView, MAX_CONCEPT_CHARS, MAX_UNIT_CHARS};
@@ -74,8 +74,8 @@ pub fn build_draft(
     vat_rate_bp: i64,
 ) -> BuiltDraft {
     let catalog = UnitCatalog::new(units);
-    let parsed = parse_text(text, &catalog);
     let index = RateIndex::new(rates, &catalog);
+    let parsed = parse_text_with(text, &catalog, &index.protected_concepts());
 
     let lines = parsed
         .jobs

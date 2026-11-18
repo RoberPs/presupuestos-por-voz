@@ -2,6 +2,7 @@
 
 use app_lib::domain::draft::numbers::parse_quantity_text;
 use app_lib::domain::draft::units::UnitCatalog;
+use app_lib::domain::rate::UnitView;
 
 fn quantity(text: &str) -> Option<i64> {
     parse_quantity_text(text, &UnitCatalog::default())
@@ -67,6 +68,36 @@ fn usual_fractions() {
 fn accents_and_capitals_do_not_matter() {
     assert_eq!(quantity("VEINTIDOS"), Some(2_200));
     assert_eq!(quantity("Metro y Medio"), Some(150));
+}
+
+#[test]
+fn a_measure_of_the_material_is_not_a_quantity() {
+    for text in [
+        "20 mm",
+        "20 milímetros",
+        "veinte milímetros",
+        "1,5 cm",
+        "2 pulgadas",
+        "treinta y cinco mm",
+    ] {
+        assert_eq!(quantity(text), None, "«{text}»");
+    }
+}
+
+#[test]
+fn the_quantity_after_a_measure_is_found() {
+    assert_eq!(quantity("tubo 20 mm 3 metros"), Some(300));
+    assert_eq!(quantity("tubo de 2 pulgadas, 4 unidades"), Some(400));
+}
+
+#[test]
+fn a_unit_created_by_the_user_is_still_a_unit() {
+    let units = UnitCatalog::new(&[UnitView {
+        id: 9,
+        label: "mm".into(),
+        is_predefined: false,
+    }]);
+    assert_eq!(parse_quantity_text("20 mm", &units), Some(2_000));
 }
 
 #[test]

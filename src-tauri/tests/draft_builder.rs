@@ -141,6 +141,41 @@ fn fragments_that_are_not_understood_are_kept() {
 }
 
 #[test]
+fn rates_with_numbers_in_their_name_are_applied() {
+    let rates = [
+        rate(1, "Tubo multicapa 21 mm 11", "hora", 7843),
+        rate(2, "Llave de paso 17 mm 7", "metro", 5091),
+    ];
+    let draft = build(
+        "tubo multicapa 21 mm 11, 3 horas, llave de paso 17 mm 7, 2 metros",
+        &rates,
+    );
+
+    assert!(draft.unparsed_fragments.is_empty());
+    assert_eq!(draft.lines.len(), 2);
+    let first = &draft.lines[0].line;
+    assert_eq!(first.concept, "Tubo multicapa 21 mm 11");
+    assert_eq!(first.quantity_centi, Some(300));
+    assert_eq!(first.price_source, PriceSource::Rate);
+    assert_eq!(first.amount_cents(), Ok(Some(23_529)));
+    let second = &draft.lines[1].line;
+    assert_eq!(second.concept, "Llave de paso 17 mm 7");
+    assert_eq!(second.quantity_centi, Some(200));
+    assert_eq!(second.amount_cents(), Ok(Some(10_182)));
+}
+
+#[test]
+fn a_partial_name_suggests_the_rate_without_applying_its_price() {
+    let rates = [rate(1, "Tubo cobre 20 mm 10", "metro", 7130)];
+    let draft = build("tubo cobre 20 mm, 3 metros", &rates);
+    let line = &draft.lines[0];
+    assert_eq!(line.line.quantity_centi, Some(300));
+    assert_eq!(line.line.price_cents, None);
+    assert_eq!(line.line.pending_reason, Some(PendingReason::SimilarRate));
+    assert_eq!(line.suggestion_rate_ids, [1]);
+}
+
+#[test]
 fn the_same_text_always_gives_the_same_draft() {
     let rates = example_rates();
     let text = "cambiar bajante, 3 metros, mano de obra 2 horas, pintar techo, unos metros de tubo";

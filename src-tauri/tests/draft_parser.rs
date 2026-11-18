@@ -1,6 +1,8 @@
 //! Del texto de la visita a los trabajos (FR-015, FR-020 y FR-022; research.md, R6).
 
-use app_lib::domain::draft::parser::{parse_text, ParsedJob, ParsedText};
+use app_lib::domain::draft::parser::{
+    parse_text, parse_text_with, ParsedJob, ParsedText, ProtectedConcepts,
+};
 use app_lib::domain::draft::units::UnitCatalog;
 use app_lib::domain::draft::QuantityIssue;
 
@@ -161,6 +163,83 @@ fn what_cannot_be_understood_is_kept_apart() {
     let parsed = parse("bueno, bajante 3 metros, 12 metros");
     assert_eq!(parsed.jobs.len(), 1);
     assert_eq!(parsed.unparsed, ["bueno", "12 metros"]);
+}
+
+#[test]
+fn a_measure_stays_in_the_concept() {
+    let table = [
+        ("tubo cobre 20 mm, 3 metros", "tubo cobre 20 mm"),
+        ("tubo cobre 20 mm 3 metros", "tubo cobre 20 mm"),
+        ("3 metros de tubo de 20 mm", "tubo de 20 mm"),
+        ("tubo de 20 milímetros, 3 metros", "tubo de 20 milímetros"),
+    ];
+    for (text, concept) in table {
+        let parsed = parse(text);
+        assert_eq!(parsed.jobs.len(), 1, "«{text}»");
+        assert_eq!(
+            summary(&parsed.jobs[0]),
+            (concept, Some(300), Some("metro")),
+            "«{text}»"
+        );
+        assert!(parsed.unparsed.is_empty(), "«{text}»");
+    }
+}
+
+fn parse_with_rates(text: &str, concepts: &[&str]) -> ParsedText {
+    parse_text_with(
+        text,
+        &UnitCatalog::default(),
+        &ProtectedConcepts::new(concepts.iter().copied()),
+    )
+}
+
+#[test]
+fn the_numbers_of_a_rate_name_are_not_quantities() {
+    let parsed = parse_with_rates(
+        "tubo multicapa 21 mm 11, 3 horas",
+        &["Tubo multicapa 21 mm 11"],
+    );
+    assert_eq!(parsed.jobs.len(), 1);
+    assert_eq!(
+        summary(&parsed.jobs[0]),
+        ("tubo multicapa 21 mm 11", Some(300), Some("hora"))
+    );
+    assert!(parsed.unparsed.is_empty());
+}
+
+#[test]
+fn a_rate_name_with_numbers_works_without_commas() {
+    let parsed = parse_with_rates(
+        "caldera modelo 2000 1 unidad termo 80 2 unidades",
+        &["Caldera modelo 2000", "Termo 80"],
+    );
+    assert_eq!(parsed.jobs.len(), 2);
+    assert_eq!(
+        summary(&parsed.jobs[0]),
+        ("caldera modelo 2000", Some(100), Some("unidad"))
+    );
+    assert_eq!(
+        summary(&parsed.jobs[1]),
+        ("termo 80", Some(200), Some("unidad"))
+    );
+}
+
+#[test]
+fn a_rate_name_is_recognized_when_its_number_is_spoken() {
+    let parsed = parse_with_rates("termo ochenta, 2 unidades", &["Termo 80"]);
+    assert_eq!(
+        summary(&parsed.jobs[0]),
+        ("termo ochenta", Some(200), Some("unidad"))
+    );
+}
+
+#[test]
+fn numbers_outside_a_rate_name_are_still_quantities() {
+    let parsed = parse_with_rates("termo 3 unidades", &["Termo 80"]);
+    assert_eq!(
+        summary(&parsed.jobs[0]),
+        ("termo", Some(300), Some("unidad"))
+    );
 }
 
 #[test]

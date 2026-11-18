@@ -165,6 +165,54 @@ fn the_more_alike_suggestions_come_first() {
 }
 
 #[test]
+fn a_measure_can_be_said_in_different_ways() {
+    let rates = [rate(1, "Tubo cobre 20 mm", "metro")];
+    for concept in [
+        "tubo cobre 20 mm",
+        "tubo cobre 20mm",
+        "tubo cobre 20 milímetros",
+        "tubo cobre veinte milímetros",
+        "tubo de cobre de veinte mm",
+    ] {
+        assert_eq!(
+            matched(concept, Some("metro"), &rates),
+            RateMatch::Applied(1),
+            "«{concept}»"
+        );
+    }
+}
+
+#[test]
+fn the_measure_chooses_between_similar_rates() {
+    let rates = [
+        rate(1, "Tubo cobre 20 mm", "metro"),
+        rate(2, "Tubo cobre 25 mm", "metro"),
+    ];
+    assert_eq!(
+        matched("tubo cobre 25 mm", Some("metro"), &rates),
+        RateMatch::Applied(2)
+    );
+}
+
+#[test]
+fn another_measure_never_takes_the_price_of_a_rate() {
+    let rates = [rate(1, "Tubo cobre 20 mm", "metro")];
+    assert_eq!(
+        matched("tubo cobre 32 mm", Some("metro"), &rates),
+        pending(PendingReason::SimilarRate, &[1])
+    );
+}
+
+#[test]
+fn sharing_only_a_number_is_not_being_similar() {
+    let rates = [rate(1, "Tubo cobre 20 mm", "metro")];
+    assert_eq!(
+        matched("pintar pared 20 mm", None, &rates),
+        pending(PendingReason::NoRate, &[])
+    );
+}
+
+#[test]
 fn a_shorter_rate_does_not_steal_the_longer_one() {
     let rates = [
         rate(1, "Mano de obra", "hora"),

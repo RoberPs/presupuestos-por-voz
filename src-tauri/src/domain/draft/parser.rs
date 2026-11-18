@@ -4,7 +4,10 @@
 
 use std::ops::Range;
 
-use crate::domain::draft::numbers::{clean_word, find_quantity};
+use crate::domain::draft::matcher::same_word;
+use crate::domain::draft::numbers::{
+    canonical_words, clean_word, find_quantity, is_number_word, normalized_tokens,
+};
 use crate::domain::draft::units::UnitCatalog;
 use crate::domain::draft::QuantityIssue;
 use crate::domain::normalize::normalize;
@@ -55,6 +58,66 @@ const VAGUE: [&[&str]; 11] = [
     &["aproximadamente"],
     &["aprox"],
 ];
+
+/// Sustituye a una palabra protegida: no es un número, una unidad ni un signo de corrección.
+const PROTECTED_WORD: &str = "\u{1}";
+
+/// Nombres de tarifas con números, como «Termo 80»: esos números no son cantidades.
+#[derive(Debug, Clone, Default)]
+pub struct ProtectedConcepts {
+    phrases: Vec<Vec<String>>,
+}
+
+impl ProtectedConcepts {
+    pub fn new<'a>(concepts: impl IntoIterator<Item = &'a str>) -> Self {
+        Self::from_phrases(concepts.into_iter().map(|concept| {
+            canonical_words(&normalized_tokens(concept))
+                .into_iter()
+                .map(|word| word.text)
+                .collect()
+        }))
+    }
+
+    /// Conceptos ya escritos de forma comparable. Solo se guardan los que llevan números.
+    pub fn from_phrases(phrases: impl IntoIterator<Item = Vec<String>>) -> Self {
+        let mut phrases: Vec<Vec<String>> = phrases
+            .into_iter()
+            .filter(|words| words.iter().any(|word| is_number_word(word)))
+            .collect();
+        // Primero los nombres más largos: «Termo 80 inox» antes que «Termo 80».
+        phrases.sort_by(|a, b| b.len().cmp(&a.len()).then_with(|| a.cmp(b)));
+        phrases.dedup();
+        Self { phrases }
+    }
+
+    /// Oculta los nombres protegidos que aparecen completos en el segmento.
+    fn mask(&self, norm: &mut [String]) {
+        let words = canonical_words(norm);
+        if self.phrases.is_empty() || !words.iter().any(|word| word.is_number()) {
+            return;
+        }
+
+        let mut pos = 0;
+        while pos < words.len() {
+            let found = self.phrases.iter().find(|phrase| {
+                words.len() >= pos + phrase.len()
+                    && phrase
+                        .iter()
+                        .zip(&words[pos..])
+                        .all(|(expected, word)| same_word(expected, &word.text))
+            });
+            let Some(phrase) = found else {
+                pos += 1;
+                continue;
+            };
+            let last = pos + phrase.len() - 1;
+            for token in &mut norm[words[pos].tokens.start..words[last].tokens.end] {
+                *token = PROTECTED_WORD.to_string();
+            }
+            pos += phrase.len();
+        }
+    }
+}
 
 /// Parte el texto por signos de puntuación, respetando los decimales («1,5»).
 fn split_segments(text: &str) -> Vec<String> {
@@ -357,8 +420,17 @@ impl Interpreter<'_> {
     }
 }
 
-/// Interpreta el texto de la visita. A igual texto, siempre el mismo resultado (FR-014).
+/// Interpreta un texto sin tener en cuenta los nombres de las tarifas.
 pub fn parse_text(text: &str, units: &UnitCatalog) -> ParsedText {
+    parse_text_with(text, units, &ProtectedConcepts::default())
+}
+
+/// Interpreta el texto de la visita. A igual texto y tarifas, siempre el mismo resultado (FR-014).
+pub fn parse_text_with(
+    text: &str,
+    units: &UnitCatalog,
+    protected: &ProtectedConcepts,
+) -> ParsedText {
     let mut interpreter = Interpreter {
         units,
         jobs: Vec::new(),
@@ -368,7 +440,8 @@ pub fn parse_text(text: &str, units: &UnitCatalog) -> ParsedText {
     };
 
     for segment in split_segments(text) {
-        let words = Words::new(&segment);
+        let mut words = Words::new(&segment);
+        protected.mask(&mut words.norm);
         for range in split_groups(&words.norm, units) {
             interpreter.group(&words.raw[range.clone()], &words.norm[range]);
         }

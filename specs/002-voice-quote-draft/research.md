@@ -59,6 +59,7 @@ Las versiones se comprobaron en crates.io y el tamaño y el hash de los modelos 
 | Segmentación | Corta por puntos, comas, saltos de línea y por el final de cada grupo cantidad + unidad |
 | Patrones | `concepto cantidad unidad`, `cantidad unidad de concepto`, `cantidad concepto`; un segmento con solo cantidad y unidad se une al concepto anterior si este no tiene cantidad |
 | Cantidades | Cifras, palabras hasta miles, `medio`, `metro y medio`, `dos horas y media`, `media hora`, `cuarto de hora`, `un par de` |
+| Números que no son cantidades | Un número seguido de `mm`, `cm` o `pulgadas` es una medida del material y queda en el concepto, salvo que esa medida exista como unidad. Los números del nombre completo de una tarifa (`Termo 80`) tampoco son cantidades |
 | Cantidad ambigua | `unos`, `unas`, `algunos`, `varios`, `unos cuantos`, `más o menos`, `aproximadamente` → `cantidad pendiente` |
 | Rectificación | `no, mejor`, `perdón`, `digo`, `mejor dicho`, `o sea` junto a una cantidad → `cantidad pendiente` con el fragmento |
 | Sin interpretar | Lo que no forma un trabajo se guarda como fragmento sin interpretar (FR-022) |
@@ -79,6 +80,7 @@ Las versiones se comprobaron en crates.io y el tamaño y el hash de los modelos 
 | Nada parecido | Pendiente, sin sugerencias (FR-018) |
 
 - **Singular y plural**: dos palabras coinciden si son iguales o si una es la otra más `s` o `es`, además de `z` ↔ `ces`. Todas las palabras cuentan, también `de`.
+- **Números y medidas**: `veinte milímetros`, `20 milímetros` y `20mm` se comparan como `20 mm`. Compartir solo un número o una medida no basta para sugerir una tarifa.
 - **Orden estable**: las sugerencias se ordenan por parecido, concepto normalizado e identificador.
 
 ## R8. Unidades
