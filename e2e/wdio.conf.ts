@@ -11,7 +11,9 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const exe = process.platform === "win32" ? "presupuestos-por-voz.exe" : "presupuestos-por-voz";
-const application = path.resolve(here, "../src-tauri/target/debug", exe);
+// La carpeta de compilación se define en .cargo/config.toml (build.target-dir).
+const targetDir = process.env.CARGO_TARGET_DIR ?? "C:/vp-target";
+const application = path.resolve(targetDir, "debug", exe);
 
 // Carpeta de datos temporal y nueva en cada ejecución (lib.rs la respeta solo en builds debug).
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "presupuestos-e2e-"));

@@ -2,10 +2,52 @@
 
 use std::path::{Path, PathBuf};
 
+use app_lib::domain::draft::TextOrigin;
 use app_lib::domain::profile::{Address, BusinessProfileInput};
+use app_lib::domain::rate::{RateInput, RateView};
+use app_lib::services::{draft_service, rate_service};
 use app_lib::state::AppState;
-use app_lib::storage::db;
+use app_lib::storage::{db, draft_repo};
 use image::{ImageBuffer, ImageFormat, Rgb, Rgba};
+
+pub const EXAMPLE_TEXT: &str = "cambiar bajante, 3 metros, mano de obra 2 horas";
+
+pub fn create_rate(state: &AppState, concept: &str, unit: &str, price: &str) -> RateView {
+    rate_service::create(
+        state,
+        RateInput {
+            concept: concept.into(),
+            unit_label: unit.into(),
+            price: price.into(),
+        },
+    )
+    .unwrap()
+}
+
+/// Tarifas de los ejemplos de la spec: Bajante (25 €/metro) y Mano de obra (30 €/hora).
+pub fn example_rates(state: &AppState) -> (RateView, RateView) {
+    (
+        create_rate(state, "Bajante", "metro", "25"),
+        create_rate(state, "Mano de obra", "hora", "30"),
+    )
+}
+
+/// Guarda un borrador generado a partir de `text`.
+pub fn seed_draft(state: &AppState, text: &str) {
+    let mut conn = state.conn().unwrap();
+    let tx = conn.transaction().unwrap();
+    let built = draft_service::build_from_text(&tx, text).unwrap();
+    draft_repo::replace(&tx, &built, text, TextOrigin::Typed).unwrap();
+    tx.commit().unwrap();
+}
+
+/// Vista del borrador en curso.
+pub fn draft_view(state: &AppState) -> draft_service::DraftView {
+    let conn = state.conn().unwrap();
+    draft_service::load_view(&conn)
+        .unwrap()
+        .expect("debe haber borrador")
+}
 
 /// Estado con base de datos en un archivo dentro de `dir`.
 pub fn state_in(dir: &Path) -> AppState {

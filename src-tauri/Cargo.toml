@@ -27,12 +27,31 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 log = "0.4"
+cpal = "0.18"
+symphonia = { version = "0.6", default-features = false, features = ["isomp4", "aac", "alac", "mp3", "wav", "pcm"] }
+rubato = "5"
+whisper-rs = { version = "0.16", optional = true }
+
+[features]
+default = ["local-transcription"]
+local-transcription = ["dep:whisper-rs"]
 
 [dev-dependencies]
 tempfile = "3"
+
+[[example]]
+name = "transcribe_benchmark"
+required-features = ["local-transcription"]
 
 [profile.release]
 codegen-units = 1
 lto = true
 opt-level = "s"
 strip = true
+
+# whisper.cpp debe compilarse optimizado para velocidad en todos los perfiles (SC-002).
+[profile.release.package.whisper-rs-sys]
+opt-level = 3
+
+[profile.dev.package.whisper-rs-sys]
+opt-level = 3

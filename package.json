@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test:e2e": "tauri build --debug --no-bundle && wdio run e2e/wdio.conf.ts",
-    "seed:rates": "cargo run --example seed_rates --manifest-path src-tauri/Cargo.toml --"
+    "seed:rates": "cargo run --example seed_rates --manifest-path src-tauri/Cargo.toml --",
+    "model:fetch": "node scripts/fetch-model.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",

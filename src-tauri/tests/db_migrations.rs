@@ -74,3 +74,224 @@ fn migrations_apply_on_file_and_reopen() {
         .unwrap();
     assert_eq!(n, 1);
 }
+
+// --- Migración 2: borrador de presupuesto por voz (feature 002) ---
+
+const DRAFT_TABLES: [&str; 6] = [
+    "dictations",
+    "visit_text_draft",
+    "quote_draft",
+    "draft_lines",
+    "draft_line_suggestions",
+    "draft_unparsed_fragments",
+];
+
+fn insert_draft(conn: &Connection) {
+    conn.execute(
+        "INSERT INTO quote_draft (id, status, source_text, text_origin, vat_rate_bp)
+         VALUES (1, 'draft', 'texto', 'typed', 2100)",
+        [],
+    )
+    .unwrap();
+}
+
+struct LineRow<'a> {
+    position: i64,
+    unit_label: Option<&'a str>,
+    price_cents: Option<i64>,
+    price_source: &'a str,
+    rate_id: Option<i64>,
+    rate_concept: Option<&'a str>,
+    pending_reason: Option<&'a str>,
+}
+
+impl Default for LineRow<'_> {
+    /// Línea válida con precio de entrada manual.
+    fn default() -> Self {
+        Self {
+            position: 0,
+            unit_label: Some("metro"),
+            price_cents: Some(2500),
+            price_source: "manual",
+            rate_id: None,
+            rate_concept: None,
+            pending_reason: None,
+        }
+    }
+}
+
+fn insert_line(conn: &Connection, line: &LineRow) -> rusqlite::Result<usize> {
+    conn.execute(
+        "INSERT INTO draft_lines (draft_id, position, concept, quantity_centi, unit_label,
+                                  price_cents, price_source, rate_id, rate_concept, pending_reason)
+         VALUES (1, ?1, 'Bajante', 300, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+            line.position,
+            line.unit_label,
+            line.price_cents,
+            line.price_source,
+            line.rate_id,
+            line.rate_concept,
+            line.pending_reason,
+        ],
+    )
+}
+
+#[test]
+fn migration_2_creates_the_draft_tables() {
+    let conn = db::open_in_memory().unwrap();
+    let version: i64 = conn
+        .query_row("PRAGMA user_version", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(version, 2);
+    for table in DRAFT_TABLES {
+        let found: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
+                [table],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(found, 1, "falta la tabla {table}");
+    }
+}
+
+#[test]
+fn only_one_quote_draft_can_exist() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    let second = conn.execute(
+        "INSERT INTO quote_draft (id, status, source_text, text_origin, vat_rate_bp)
+         VALUES (2, 'draft', 'otro', 'typed', 2100)",
+        [],
+    );
+    assert!(second.is_err());
+}
+
+#[test]
+fn valid_lines_are_accepted() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    insert_line(&conn, &LineRow::default()).unwrap();
+    insert_line(
+        &conn,
+        &LineRow {
+            position: 1,
+            unit_label: None,
+            price_cents: None,
+            price_source: "pending",
+            pending_reason: Some("no_rate"),
+            ..LineRow::default()
+        },
+    )
+    .unwrap();
+}
+
+#[test]
+fn rate_line_without_price_is_rejected() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    let result = insert_line(
+        &conn,
+        &LineRow {
+            price_cents: None,
+            price_source: "rate",
+            rate_concept: Some("Bajante"),
+            ..LineRow::default()
+        },
+    );
+    assert!(result.is_err());
+}
+
+#[test]
+fn pending_line_with_price_is_rejected() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    let result = insert_line(
+        &conn,
+        &LineRow {
+            price_source: "pending",
+            pending_reason: Some("no_rate"),
+            ..LineRow::default()
+        },
+    );
+    assert!(result.is_err());
+}
+
+#[test]
+fn line_with_price_and_no_unit_is_rejected() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    let result = insert_line(
+        &conn,
+        &LineRow {
+            unit_label: None,
+            ..LineRow::default()
+        },
+    );
+    assert!(result.is_err());
+}
+
+#[test]
+fn deleting_a_rate_keeps_the_line_price() {
+    let conn = db::open_in_memory().unwrap();
+    conn.execute(
+        "INSERT INTO rates (concept, concept_norm, unit_id, price_cents)
+         VALUES ('Bajante', 'bajante', 3, 2500)",
+        [],
+    )
+    .unwrap();
+    let rate_id = conn.last_insert_rowid();
+    insert_draft(&conn);
+    insert_line(
+        &conn,
+        &LineRow {
+            price_source: "rate",
+            rate_id: Some(rate_id),
+            rate_concept: Some("Bajante"),
+            ..LineRow::default()
+        },
+    )
+    .unwrap();
+
+    conn.execute("DELETE FROM rates WHERE id = ?1", [rate_id])
+        .unwrap();
+
+    let (kept_rate, price, source, concept): (Option<i64>, i64, String, String) = conn
+        .query_row(
+            "SELECT rate_id, price_cents, price_source, rate_concept FROM draft_lines",
+            [],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        )
+        .unwrap();
+    assert_eq!(kept_rate, None);
+    assert_eq!(price, 2500);
+    assert_eq!(source, "rate");
+    assert_eq!(concept, "Bajante");
+}
+
+#[test]
+fn draft_tables_store_no_end_customer_data() {
+    const FORBIDDEN: [&str; 9] = [
+        "client", "customer", "cliente", "tax_id", "nif", "address", "phone", "email", "postal",
+    ];
+    let conn = db::open_in_memory().unwrap();
+    for table in DRAFT_TABLES {
+        let mut stmt = conn
+            .prepare(&format!("PRAGMA table_info({table})"))
+            .unwrap();
+        let columns: Vec<String> = stmt
+            .query_map([], |r| r.get(1))
+            .unwrap()
+            .map(Result::unwrap)
+            .collect();
+        assert!(!columns.is_empty(), "la tabla {table} no tiene columnas");
+        for column in columns {
+            let name = column.to_lowercase();
+            assert!(
+                !FORBIDDEN.iter().any(|f| name.contains(f)),
+                "{table}.{column} parece un dato del cliente final"
+            );
+        }
+    }
+}

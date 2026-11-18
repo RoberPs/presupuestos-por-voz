@@ -5,6 +5,8 @@ build/
 coverage/
 src-tauri/target/
 src-tauri/gen/
+src-tauri/resources/models/*.bin
+src-tauri/resources/models/*.part
 
 # Rust
 *.rs.bk

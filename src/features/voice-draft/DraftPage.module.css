@@ -1,0 +1,294 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1000px;
+}
+
+.page h1 {
+  margin: 0;
+}
+
+.pageHeader,
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.reviewRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reviewed {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  color: var(--color-success-text);
+  background: var(--color-success-bg);
+  border-radius: var(--radius);
+}
+
+.cellInput {
+  width: 100%;
+  min-width: 72px;
+  min-height: var(--touch-target);
+  padding: var(--space-1) var(--space-2);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.cellInput[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.cellNumber {
+  text-align: right;
+}
+
+.fieldError {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-danger);
+  white-space: normal;
+  text-align: left;
+}
+
+.suggestionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modeChoice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.modeChoice label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target);
+}
+
+.intro {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.block {
+  display: block;
+  margin-top: var(--space-1);
+}
+
+.bannerActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.startRow,
+.recording {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.recordButton {
+  min-width: 220px;
+  min-height: 96px;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.startOptions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.recording p,
+.processing p {
+  margin: 0;
+}
+
+.recordingLabel {
+  font-weight: 600;
+}
+
+.level {
+  width: 200px;
+  height: 16px;
+}
+
+.processing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.textLabel {
+  font-weight: 600;
+}
+
+.textArea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+
+.textArea[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  background: var(--color-bg);
+  font-size: var(--font-size-sm);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.pendingRow {
+  background: var(--color-warning-bg);
+}
+
+.concept {
+  display: block;
+  font-weight: 600;
+}
+
+.mark {
+  display: inline-block;
+  margin: var(--space-1) var(--space-2) 0 0;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-warning-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius);
+}
+
+.detail {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.pendingRow .detail {
+  color: var(--color-warning-text);
+}
+
+.suggestions ul,
+.unparsed ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+}
+
+.unparsed h3 {
+  margin: 0;
+  font-size: var(--font-size-base);
+}
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 360px;
+  margin: 0 0 0 auto;
+  width: 100%;
+}
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.totals dt,
+.totals dd {
+  margin: 0;
+}
+
+.totals dd {
+  white-space: nowrap;
+}
+
+.grandTotal {
+  padding-top: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+}

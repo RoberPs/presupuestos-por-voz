@@ -21,6 +21,12 @@ pub enum ErrorCode {
     PriceNotPositive,
     UnitRequired,
     ConceptRequired,
+    QuantityRequired,
+    QuantityInvalidFormat,
+    QuantityTooManyDecimals,
+    QuantityNotPositive,
+    AmountTooLarge,
+    TextRequired,
 }
 
 impl ErrorCode {
@@ -49,7 +55,129 @@ impl ErrorCode {
             ErrorCode::PriceTooManyDecimals => "El precio admite como máximo dos decimales.",
             ErrorCode::PriceNotPositive => "El precio debe ser mayor que cero.",
             ErrorCode::UnitRequired => "Elige o escribe una unidad.",
-            ErrorCode::ConceptRequired => "Escribe el concepto de la tarifa.",
+            ErrorCode::ConceptRequired => "Escribe el concepto.",
+            ErrorCode::QuantityRequired => "Escribe la cantidad.",
+            ErrorCode::QuantityInvalidFormat => {
+                "Escribe la cantidad solo con números, por ejemplo 1,5."
+            }
+            ErrorCode::QuantityTooManyDecimals => "La cantidad admite como máximo dos decimales.",
+            ErrorCode::QuantityNotPositive => "La cantidad debe ser mayor que cero.",
+            ErrorCode::AmountTooLarge => {
+                "El importe es demasiado grande. Revisa la cantidad y el precio."
+            }
+            ErrorCode::TextRequired => "Escribe primero lo que quieres presupuestar.",
+        }
+    }
+}
+
+/// Problemas con el micrófono (FR-008).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum MicrophoneCode {
+    MicNotFound,
+    MicAccessDenied,
+    MicUnavailable,
+}
+
+impl MicrophoneCode {
+    pub fn message(self) -> &'static str {
+        match self {
+            MicrophoneCode::MicNotFound => {
+                "No se ha encontrado ningún micrófono. Conecta uno, importa un audio o escribe la visita a mano."
+            }
+            MicrophoneCode::MicAccessDenied => {
+                "Windows no deja usar el micrófono. Actívalo en Configuración > Privacidad > Micrófono, importa un audio o escribe la visita a mano."
+            }
+            MicrophoneCode::MicUnavailable => {
+                "El micrófono no está disponible ahora. Cierra otros programas que lo usen, importa un audio o escribe la visita a mano."
+            }
+        }
+    }
+}
+
+/// Motivo de rechazo de un audio importado (FR-002c).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum AudioRejectCode {
+    AudioUnsupportedFormat,
+    AudioCorrupt,
+    AudioTooLong,
+}
+
+impl AudioRejectCode {
+    pub fn message(self) -> &'static str {
+        match self {
+            AudioRejectCode::AudioUnsupportedFormat => {
+                "Ese archivo no es un audio admitido. Usa un audio M4A, MP3 o WAV."
+            }
+            AudioRejectCode::AudioCorrupt => {
+                "No se ha podido abrir el audio: el archivo está dañado."
+            }
+            AudioRejectCode::AudioTooLong => {
+                "El audio dura más de 10 minutos. Elige uno más corto."
+            }
+        }
+    }
+}
+
+/// Fallos de la transcripción local (FR-004).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum TranscriptionCode {
+    ModelUnavailable,
+    TranscriptionFailed,
+}
+
+impl TranscriptionCode {
+    pub fn message(self) -> &'static str {
+        match self {
+            TranscriptionCode::ModelUnavailable => {
+                "No se encuentra el reconocimiento de voz de la aplicación. Tu audio está guardado: vuelve a instalar la aplicación y reinténtalo, o escribe la visita a mano."
+            }
+            TranscriptionCode::TranscriptionFailed => {
+                "No se ha podido pasar el audio a texto. Tu audio está guardado: inténtalo de nuevo o escribe la visita a mano."
+            }
+        }
+    }
+
+    /// Valor guardado en `dictations.error_code`.
+    pub fn as_db(self) -> &'static str {
+        match self {
+            TranscriptionCode::ModelUnavailable => "MODEL_UNAVAILABLE",
+            TranscriptionCode::TranscriptionFailed => "TRANSCRIPTION_FAILED",
+        }
+    }
+
+    pub fn from_db(value: &str) -> Option<Self> {
+        match value {
+            "MODEL_UNAVAILABLE" => Some(TranscriptionCode::ModelUnavailable),
+            "TRANSCRIPTION_FAILED" => Some(TranscriptionCode::TranscriptionFailed),
+            _ => None,
+        }
+    }
+}
+
+/// Acciones que exigen la confirmación del profesional.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ConfirmationReason {
+    ReplaceDraft,
+    ReplacePendingAudio,
+    DiscardManualChanges,
+}
+
+impl ConfirmationReason {
+    pub fn message(self) -> &'static str {
+        match self {
+            ConfirmationReason::ReplaceDraft => {
+                "Ya tienes un presupuesto en curso. Si sigues, se sustituirá por el nuevo."
+            }
+            ConfirmationReason::ReplacePendingAudio => {
+                "Tienes un audio sin procesar. Si sigues, se perderá."
+            }
+            ConfirmationReason::DiscardManualChanges => {
+                "Has hecho cambios a mano en este presupuesto. Si sigues, se perderán."
+            }
         }
     }
 }
@@ -119,6 +247,33 @@ pub enum AppError {
     },
     #[error("{message}")]
     Storage { message: String },
+    #[error("{message}")]
+    Microphone {
+        code: MicrophoneCode,
+        message: String,
+    },
+    #[error("{message}")]
+    AudioRejected {
+        code: AudioRejectCode,
+        message: String,
+    },
+    #[error("{message}")]
+    Transcription {
+        code: TranscriptionCode,
+        message: String,
+    },
+    #[error("{message}")]
+    ConfirmationRequired {
+        reason: ConfirmationReason,
+        message: String,
+    },
+    #[error("{message}")]
+    InvalidState { message: String },
+    #[error("{message}")]
+    DraftHasPending {
+        pending_line_ids: Vec<i64>,
+        message: String,
+    },
 }
 
 pub const STORAGE_MESSAGE: &str = "No se ha podido guardar. Inténtalo de nuevo.";
@@ -145,6 +300,52 @@ impl AppError {
 
     pub fn validation(errors: Vec<FieldError>) -> Self {
         AppError::Validation { errors }
+    }
+
+    /// Error de validación de un solo campo.
+    pub fn field(field: impl Into<String>, code: ErrorCode) -> Self {
+        AppError::validation(vec![FieldError::new(field, code)])
+    }
+
+    pub fn microphone(code: MicrophoneCode) -> Self {
+        AppError::Microphone {
+            code,
+            message: code.message().to_string(),
+        }
+    }
+
+    pub fn audio_rejected(code: AudioRejectCode) -> Self {
+        AppError::AudioRejected {
+            code,
+            message: code.message().to_string(),
+        }
+    }
+
+    pub fn transcription(code: TranscriptionCode) -> Self {
+        AppError::Transcription {
+            code,
+            message: code.message().to_string(),
+        }
+    }
+
+    pub fn confirmation_required(reason: ConfirmationReason) -> Self {
+        AppError::ConfirmationRequired {
+            reason,
+            message: reason.message().to_string(),
+        }
+    }
+
+    pub fn invalid_state(message: impl Into<String>) -> Self {
+        AppError::InvalidState {
+            message: message.into(),
+        }
+    }
+
+    pub fn draft_has_pending(pending_line_ids: Vec<i64>) -> Self {
+        AppError::DraftHasPending {
+            pending_line_ids,
+            message: "Faltan líneas por completar antes de dar el presupuesto por bueno.".into(),
+        }
     }
 }
 
@@ -185,5 +386,47 @@ mod tests {
         let json = serde_json::to_value(&l).unwrap();
         assert_eq!(json["kind"], "logoRejected");
         assert_eq!(json["code"], "LOGO_TOO_LARGE");
+    }
+
+    #[test]
+    fn voice_draft_errors_serialize_like_the_contract() {
+        let json =
+            serde_json::to_value(AppError::microphone(MicrophoneCode::MicAccessDenied)).unwrap();
+        assert_eq!(json["kind"], "microphone");
+        assert_eq!(json["code"], "MIC_ACCESS_DENIED");
+
+        let json =
+            serde_json::to_value(AppError::audio_rejected(AudioRejectCode::AudioTooLong)).unwrap();
+        assert_eq!(json["kind"], "audioRejected");
+        assert_eq!(json["code"], "AUDIO_TOO_LONG");
+
+        let json =
+            serde_json::to_value(AppError::transcription(TranscriptionCode::ModelUnavailable))
+                .unwrap();
+        assert_eq!(json["kind"], "transcription");
+        assert_eq!(json["code"], "MODEL_UNAVAILABLE");
+
+        let json = serde_json::to_value(AppError::confirmation_required(
+            ConfirmationReason::ReplacePendingAudio,
+        ))
+        .unwrap();
+        assert_eq!(json["kind"], "confirmationRequired");
+        assert_eq!(json["reason"], "replacePendingAudio");
+
+        let json = serde_json::to_value(AppError::invalid_state("x")).unwrap();
+        assert_eq!(json["kind"], "invalidState");
+
+        let json = serde_json::to_value(AppError::draft_has_pending(vec![3, 5])).unwrap();
+        assert_eq!(json["kind"], "draftHasPending");
+        assert_eq!(json["pendingLineIds"], serde_json::json!([3, 5]));
+
+        let json = serde_json::to_value(AppError::field("text", ErrorCode::TextRequired)).unwrap();
+        assert_eq!(json["errors"][0]["code"], "TEXT_REQUIRED");
+        let json = serde_json::to_value(AppError::field(
+            "quantity",
+            ErrorCode::QuantityTooManyDecimals,
+        ))
+        .unwrap();
+        assert_eq!(json["errors"][0]["code"], "QUANTITY_TOO_MANY_DECIMALS");
     }
 }

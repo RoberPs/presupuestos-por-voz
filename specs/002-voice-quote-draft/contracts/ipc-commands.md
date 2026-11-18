@@ -150,7 +150,7 @@ Descarta la grabación recuperable o la ranura `incoming`. El borrador vigente n
 
 ### `draft_generate_from_text(args: { text: string; mode: "new" | "regenerate"; confirmed: boolean })` → `DraftView`
 
-- `new`: crea un borrador desde texto escrito o pegado (FR-013). Si ya hay contenido, exige `confirmed` (`replaceDraft`).
+- `new`: crea un borrador desde texto escrito o pegado (FR-013). Si ya hay contenido, exige `confirmed`: `replaceDraft` si hay borrador y `replacePendingAudio` si hay un audio sin procesar o una grabación recuperable.
 - `regenerate`: rehace el borrador con el texto editado (FR-011). Si hay cambios manuales, exige `confirmed` (`discardManualChanges`) (FR-012).
 - Texto vacío: `validation` con `TEXT_REQUIRED`.
 

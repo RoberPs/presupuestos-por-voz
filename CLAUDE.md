@@ -11,12 +11,16 @@ dictada por voz. Un solo usuario por instalación, sin conocimientos técnicos.
 ## Estado actual
 
 - El proyecto se desarrolla con **Spec Kit** (Spec-Driven Development, v0.16.5, scripts PowerShell).
-- Feature en curso: `001-business-profile-rates` (perfil del negocio, logo y tarifas), en la rama del
-  mismo nombre. Implementadas US1–US4. Consulta `tasks.md` para ver las tareas pendientes de Polish.
+- Feature en curso: `002-voice-quote-draft` (borrador de presupuesto por voz), en la rama del mismo
+  nombre. Implementadas US1–US5. Consulta su `tasks.md` para ver las validaciones manuales pendientes.
+- Feature anterior: `001-business-profile-rates` (perfil del negocio, logo y tarifas).
 - Equipo de desarrollo con poca memoria: compila Rust con `-j 2` (o `$env:CARGO_BUILD_JOBS = 2`).
   Con más procesos falla con el error 1455 (archivo de paginación).
-- Fuera del alcance de la feature 001: dictado por voz, presupuestos y PDF, importar desde Excel,
-  varios negocios o usuarios, exportación y copias de seguridad.
+- Compilación: `.cargo/config.toml` fija la salida en `C:/vp-target` (la ruta del repositorio supera el
+  límite de 260 caracteres de Windows) y compila whisper.cpp con `clang-cl`, Ninja y AVX2 fijo. Con MSVC
+  la transcripción es unas 8 veces más lenta; el modo nativo podría romper el instalador en otros equipos.
+- Fuera del alcance de la feature 002: generación del PDF, datos del cliente final, historial de
+  presupuestos, envío por email o WhatsApp, y otros idiomas distintos del español.
 
 ## Fuente de verdad
 
@@ -36,13 +40,13 @@ pasar por `/speckit-clarify` o `/speckit-analyze`. Si un artefacto contradice la
 
 | Documento | Contenido |
 |---|---|
-| [specs/001-business-profile-rates/spec.md](specs/001-business-profile-rates/spec.md) | Requisitos (FR-xxx), casos límite y criterios de éxito |
-| [specs/001-business-profile-rates/plan.md](specs/001-business-profile-rates/plan.md) | Stack, estructura del código y Constitution Check |
-| [specs/001-business-profile-rates/research.md](specs/001-business-profile-rates/research.md) | Decisiones técnicas R1–R10 |
-| [specs/001-business-profile-rates/data-model.md](specs/001-business-profile-rates/data-model.md) | Tablas SQLite, validaciones y estado derivado |
-| [specs/001-business-profile-rates/contracts/ipc-commands.md](specs/001-business-profile-rates/contracts/ipc-commands.md) | Contrato de los comandos IPC de Tauri |
-| [specs/001-business-profile-rates/tasks.md](specs/001-business-profile-rates/tasks.md) | Tareas T001… ordenadas por fase e historia |
-| [specs/001-business-profile-rates/quickstart.md](specs/001-business-profile-rates/quickstart.md) | Cómo arrancar, probar y validar a mano |
+| [specs/002-voice-quote-draft/spec.md](specs/002-voice-quote-draft/spec.md) | Requisitos (FR-xxx), casos límite y criterios de éxito |
+| [specs/002-voice-quote-draft/plan.md](specs/002-voice-quote-draft/plan.md) | Stack, estructura del código y Constitution Check |
+| [specs/002-voice-quote-draft/research.md](specs/002-voice-quote-draft/research.md) | Decisiones técnicas R1–R12 y mediciones del modelo |
+| [specs/002-voice-quote-draft/data-model.md](specs/002-voice-quote-draft/data-model.md) | Tablas SQLite, validaciones y estados |
+| [specs/002-voice-quote-draft/contracts/ipc-commands.md](specs/002-voice-quote-draft/contracts/ipc-commands.md) | Contrato de los comandos IPC de Tauri |
+| [specs/002-voice-quote-draft/tasks.md](specs/002-voice-quote-draft/tasks.md) | Tareas T001… ordenadas por fase e historia |
+| [specs/002-voice-quote-draft/quickstart.md](specs/002-voice-quote-draft/quickstart.md) | Cómo preparar el entorno, probar y validar a mano |
 
 ## Principios de la constitución (resumen)
 
@@ -63,21 +67,26 @@ Las claves de API de terceros las aporta el usuario y se guardan localmente de f
 - **Tauri 2**: núcleo en **Rust** (edición 2021) e interfaz en **React 18 + TypeScript 5 + Vite**.
 - Núcleo: `tauri-plugin-dialog`, `tauri-plugin-log`, `rusqlite` (`bundled`), `rusqlite_migration`, `image`
   (solo PNG y JPEG), `unicode-normalization`, `sha2`, `serde` y `thiserror`.
+- Voz: `whisper-rs` 0.16 (feature `local-transcription`), `cpal` 0.18 (micrófono), `symphonia` 0.6 (M4A, MP3
+  y WAV) y `rubato` 5 (conversión a 16 kHz). Modelo `ggml-small-q5_1.bin`, incluido en el instalador.
 - Interfaz: React Router 6, React Hook Form y `@tauri-apps/api` 2.
-- Datos: SQLite en modo WAL dentro de `app_data_dir` (`presupuestos.db`) y logo en `app_data_dir/branding/`.
+- Datos: SQLite en modo WAL dentro de `app_data_dir` (`presupuestos.db`), logo en `app_data_dir/branding/`
+  y audios del dictado en `app_data_dir/recordings/`.
 - Plataforma principal: Windows 10/11 x64 (WebView2).
 
 ## Estructura
 
 ```text
 src/                     # Interfaz React, organizada por features
-  features/business-profile/, features/rates/
+  features/business-profile/, features/rates/, features/voice-draft/
   shared/ipc/            # client.ts + types.ts (espejo exacto del contrato IPC)
   shared/i18n/es.ts      # TODOS los textos de la interfaz
   shared/components/, shared/styles/
 src-tauri/src/           # Núcleo Rust (crate de librería `app_lib`)
   commands/              # capa fina IPC → services
-  domain/                # lógica pura sin dependencias de Tauri (normalize, money, validation…)
+  domain/                # lógica pura sin dependencias de Tauri (normalize, money, validation, draft…)
+  audio/                 # micrófono, importación, WAV, conversión a 16 kHz y detección de silencio
+  transcription/         # trait `Transcriber` y motor real whisper.cpp
   services/              # casos de uso
   storage/               # db.rs, migraciones SQL y repositorios
   error.rs               # AppError serializado según el contrato
@@ -89,8 +98,10 @@ e2e/                     # WebdriverIO + tauri-driver
 
 ```powershell
 npm install
+npm run model:fetch                                     # descarga y verifica el modelo de voz (solo al preparar el entorno)
 npm run tauri dev                                       # arrancar la app en desarrollo
 cargo test --manifest-path src-tauri/Cargo.toml         # pruebas Rust
+cargo test --manifest-path src-tauri/Cargo.toml --no-default-features  # sin compilar whisper.cpp
 npm run test                                            # Vitest + Testing Library (IPC simulado)
 npm run lint; npm run typecheck
 cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
@@ -110,7 +121,10 @@ La shell principal es PowerShell 5.1: encadena comandos con `;` (no existe `&&`)
   `src/shared/ipc/types.ts` y en Rust. Los módulos `domain`, `services`, `storage` y `error` son `pub`, porque los usan las pruebas de integración.
 - Todos los comandos se registran en `src-tauri/src/lib.rs`, así que las tareas que lo tocan no son paralelas.
 - **Seguridad sin red**: CSP sin orígenes remotos; capabilities limitadas a `core:default`, `dialog:allow-open` y `log:default`.
-  No añadas plugins HTTP, updater, telemetría, CDNs ni fuentes remotas.
+  No añadas plugins HTTP, updater, telemetría, CDNs ni fuentes remotas. Única excepción de red:
+  `npm run model:fetch` descarga el modelo al preparar el entorno de desarrollo; la app nunca descarga nada.
+- **Precios del borrador**: el intérprete de texto es determinista y solo copia precios de una tarifa. Cualquier
+  duda deja la línea pendiente. Cantidades en **centésimas enteras** (1,5 → 150).
 - **Textos**: todos en español sencillo y sin jerga técnica, centralizados en `src/shared/i18n/es.ts`. Los errores de almacenamiento
   muestran un mensaje amable al usuario y el detalle va a `log::error!`.
 - **Accesibilidad**: letra base de 16 px, objetivos táctiles de al menos 44 px, contraste AA y foco visible.

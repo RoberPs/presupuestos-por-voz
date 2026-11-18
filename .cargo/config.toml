@@ -1,0 +1,22 @@
+# La ruta del repositorio es larga y whisper.cpp supera el límite de 260 caracteres
+# de Windows si se compila dentro de src-tauri/target.
+[build]
+target-dir = "C:/vp-target"
+
+# Opciones de compilación de whisper.cpp (las lee el script de whisper-rs-sys).
+[env]
+# Con MSVC la transcripción es unas 8 veces más lenta y no cumple SC-002 (research.md, R2).
+CMAKE_GENERATOR = "Ninja"
+CMAKE_C_COMPILER = "clang-cl"
+CMAKE_CXX_COMPILER = "clang-cl"
+CXXFLAGS_x86_64_pc_windows_msvc = "/EHsc"
+
+# No se usa el modo nativo: optimizaría para el procesador del equipo que compila
+# y el instalador podría fallar en los ordenadores de los clientes.
+GGML_NATIVE = "OFF"
+GGML_SSE42 = "ON"
+GGML_AVX = "ON"
+GGML_AVX2 = "ON"
+GGML_FMA = "ON"
+GGML_F16C = "ON"
+GGML_BMI2 = "ON"

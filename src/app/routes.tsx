@@ -2,6 +2,7 @@ import { Navigate, createMemoryRouter, type RouteObject } from "react-router-dom
 import { App } from "./App";
 import { BusinessProfilePage } from "../features/business-profile/BusinessProfilePage";
 import { RatesPage } from "../features/rates/RatesPage";
+import { DraftPage } from "../features/voice-draft/DraftPage";
 
 export const routes: RouteObject[] = [
   {
@@ -11,6 +12,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Navigate to="/negocio" replace /> },
       { path: "negocio", element: <BusinessProfilePage /> },
       { path: "tarifas", element: <RatesPage /> },
+      { path: "presupuesto", element: <DraftPage /> },
     ],
   },
 ];

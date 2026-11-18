@@ -29,6 +29,14 @@ export function App() {
                   {es.app.nav.rates}
                 </NavLink>
               </li>
+              <li>
+                <NavLink
+                  to="/presupuesto"
+                  className={({ isActive }) => (isActive ? styles.active : "")}
+                >
+                  {es.app.nav.draft}
+                </NavLink>
+              </li>
             </ul>
           </nav>
           <main className={styles.main}>

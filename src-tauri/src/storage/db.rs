@@ -10,7 +10,10 @@ use crate::error::AppError;
 pub const DB_FILE_NAME: &str = "presupuestos.db";
 
 fn migrations() -> Migrations<'static> {
-    Migrations::new(vec![M::up(include_str!("migrations/001_init.sql"))])
+    Migrations::new(vec![
+        M::up(include_str!("migrations/001_init.sql")),
+        M::up(include_str!("migrations/002_voice_draft.sql")),
+    ])
 }
 
 fn configure(conn: &mut Connection) -> Result<(), AppError> {

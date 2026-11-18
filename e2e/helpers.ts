@@ -35,7 +35,7 @@ export async function clickInDialog(name: string) {
   await b.click();
 }
 
-export async function goTo(section: "Mi negocio" | "Tarifas") {
+export async function goTo(section: "Mi negocio" | "Tarifas" | "Presupuesto") {
   const link = await $(`//nav//a[normalize-space(.)="${section}"]`);
   await link.click();
 }

@@ -128,6 +128,42 @@ pub fn parse_percent_bp(input: &str) -> Result<i64, ErrorCode> {
     }
 }
 
+/// Cantidad máxima de una línea, en centésimas (data-model.md).
+pub const MAX_QUANTITY_CENTI: i64 = 99_999_999;
+
+/// Cantidad en centésimas enteras (> 0, como máximo dos decimales): `"1,5"` → `150`.
+pub fn parse_quantity_centi(input: &str) -> Result<i64, ErrorCode> {
+    match parse_hundredths(input) {
+        Err(DecimalError::Empty) => Err(ErrorCode::QuantityRequired),
+        Err(DecimalError::Format) => Err(ErrorCode::QuantityInvalidFormat),
+        Err(DecimalError::TooManyDecimals) => Err(ErrorCode::QuantityTooManyDecimals),
+        Ok(v) if v <= 0 => Err(ErrorCode::QuantityNotPositive),
+        Ok(v) if v > MAX_QUANTITY_CENTI => Err(ErrorCode::QuantityInvalidFormat),
+        Ok(v) => Ok(v),
+    }
+}
+
+/// `150` → `"1,5"`; `300` → `"3"`. Sin ceros decimales sobrantes.
+pub fn format_quantity(quantity_centi: i64) -> String {
+    let full = format_hundredths(quantity_centi);
+    match full.strip_suffix(",00") {
+        Some(int) => int.to_string(),
+        None => full.strip_suffix('0').unwrap_or(&full).to_string(),
+    }
+}
+
+/// Importe de una línea: cantidad × precio, redondeado al céntimo más cercano (R9).
+pub fn line_amount_cents(quantity_centi: i64, price_cents: i64) -> Result<i64, ErrorCode> {
+    let amount = (i128::from(quantity_centi) * i128::from(price_cents) + 50) / 100;
+    i64::try_from(amount).map_err(|_| ErrorCode::AmountTooLarge)
+}
+
+/// IVA de una base: base × puntos básicos, redondeado al céntimo más cercano (R9).
+pub fn vat_amount_cents(base_cents: i64, vat_rate_bp: i64) -> Result<i64, ErrorCode> {
+    let vat = (i128::from(base_cents) * i128::from(vat_rate_bp) + 5_000) / 10_000;
+    i64::try_from(vat).map_err(|_| ErrorCode::AmountTooLarge)
+}
+
 /// Número con separador de miles "." y dos decimales con ",".
 fn format_hundredths(value: i64) -> String {
     let negative = value < 0;
@@ -227,5 +263,81 @@ mod tests {
         assert_eq!(format_percent_bp(2100), "21,00");
         assert_eq!(format_percent_bp(0), "0,00");
         assert_eq!(format_percent_bp(10_000), "100,00");
+    }
+
+    #[test]
+    fn quantity_table_from_data_model() {
+        assert_eq!(parse_quantity_centi(""), Err(ErrorCode::QuantityRequired));
+        assert_eq!(
+            parse_quantity_centi("   "),
+            Err(ErrorCode::QuantityRequired)
+        );
+        assert_eq!(
+            parse_quantity_centi("abc"),
+            Err(ErrorCode::QuantityInvalidFormat)
+        );
+        assert_eq!(
+            parse_quantity_centi("1,234"),
+            Err(ErrorCode::QuantityTooManyDecimals)
+        );
+        assert_eq!(
+            parse_quantity_centi("0"),
+            Err(ErrorCode::QuantityNotPositive)
+        );
+        assert_eq!(
+            parse_quantity_centi("-2"),
+            Err(ErrorCode::QuantityNotPositive)
+        );
+        assert_eq!(parse_quantity_centi("3"), Ok(300));
+        assert_eq!(parse_quantity_centi("1,5"), Ok(150));
+        assert_eq!(parse_quantity_centi("2.25"), Ok(225));
+    }
+
+    #[test]
+    fn quantity_upper_limit() {
+        assert_eq!(parse_quantity_centi("999999,99"), Ok(MAX_QUANTITY_CENTI));
+        assert_eq!(
+            parse_quantity_centi("1000000"),
+            Err(ErrorCode::QuantityInvalidFormat)
+        );
+    }
+
+    #[test]
+    fn quantity_formatting() {
+        assert_eq!(format_quantity(300), "3");
+        assert_eq!(format_quantity(150), "1,5");
+        assert_eq!(format_quantity(225), "2,25");
+        assert_eq!(format_quantity(5), "0,05");
+        assert_eq!(format_quantity(123_456_700), "1.234.567");
+    }
+
+    #[test]
+    fn line_amounts_round_to_the_cent() {
+        assert_eq!(line_amount_cents(300, 2500), Ok(7500));
+        assert_eq!(line_amount_cents(200, 3000), Ok(6000));
+        assert_eq!(line_amount_cents(150, 3333), Ok(5000));
+        assert_eq!(line_amount_cents(1, 49), Ok(0));
+        assert_eq!(line_amount_cents(1, 50), Ok(1));
+    }
+
+    #[test]
+    fn vat_amounts_round_to_the_cent() {
+        assert_eq!(vat_amount_cents(13_500, 2100), Ok(2835));
+        assert_eq!(vat_amount_cents(16_000, 2100), Ok(3360));
+        assert_eq!(vat_amount_cents(0, 2100), Ok(0));
+        assert_eq!(vat_amount_cents(1, 5000), Ok(1));
+    }
+
+    #[test]
+    fn overflow_is_rejected() {
+        assert_eq!(
+            line_amount_cents(i64::MAX, i64::MAX),
+            Err(ErrorCode::AmountTooLarge)
+        );
+        assert_eq!(vat_amount_cents(i64::MAX, 10_000), Ok(i64::MAX));
+        assert_eq!(
+            vat_amount_cents(i64::MAX, 20_000),
+            Err(ErrorCode::AmountTooLarge)
+        );
     }
 }

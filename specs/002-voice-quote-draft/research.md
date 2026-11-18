@@ -8,14 +8,25 @@ Las versiones se comprobaron en crates.io y el tamaño y el hash de los modelos 
 
 - **Decisión**: whisper.cpp mediante `whisper-rs` 0.16, en un hilo dedicado, con idioma fijo `es`, muestreo voraz (*greedy*) y hasta 4 hilos de CPU. El modelo se carga al empezar a transcribir y se libera al terminar.
 - **Motivo**: es el motor previsto en CLAUDE.md, cumple el motor local que exige el Principio III, funciona sin red y admite progreso y cancelación.
-- **Prerrequisito de compilación**: `whisper-rs` necesita **CMake** y **LLVM/Clang**. En el equipo de desarrollo actual no están instalados (ver [quickstart.md](quickstart.md)).
+- **Prerrequisito de compilación**: `whisper-rs` necesita **CMake**, **LLVM/Clang** y **Ninja** (ver [quickstart.md](quickstart.md)). whisper.cpp se compila con `clang-cl` y AVX2 fijo, según `.cargo/config.toml`: con MSVC es unas 8 veces más lento, y el modo nativo podría generar un instalador que falle en procesadores distintos al del equipo que compila. La salida va a `C:/vp-target`, porque la ruta del repositorio supera el límite de 260 caracteres de Windows al compilar whisper.cpp.
 - **Alternativas descartadas**: Vosk (peor precisión en español con ruido); API externa (la constitución la permite solo como mejora opcional, y queda fuera de esta feature).
 
 ## R2. Modelo incluido
 
 - **Decisión**: `ggml-small-q5_1.bin`, 181 MiB, SHA-256 `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb`, como recurso del instalador. `scripts/fetch-model.mjs` lo descarga al preparar el entorno de desarrollo y verifica el hash; la app nunca descarga nada.
 - **Motivo**: el dictado tiene ruido de obra y de coche, y `small` ofrece mejor precisión que `base` con un tamaño asumible una vez cuantizado.
-- **Riesgo abierto**: no se ha medido aún si cumple SC-002 (1 minuto de audio en < 60 s con 4 núcleos y 8 GB). **La primera tarea de implementación debe medirlo.** Si no lo cumple, se usa `ggml-base-q5_1.bin` (57 MiB, SHA-256 `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898`) y se comprueba SC-003 con él.
+- **Medición (T006, 2026-11-18)**: `small-q5_1` cumple SC-002 y se mantiene. Equipo: Intel Core i5-1135G7 (4 núcleos, 8 hilos) y 8 GB de RAM, con alrededor de 1 GB libre. Audio: 65,2 s de voz sintética en español (Windows, voz Helena), sin ruido.
+
+| Modelo | Compilador | Hilos | Tiempo total (65,2 s de audio) | Equivalente por minuto | Pico de memoria |
+|---|---|---|---|---|---|
+| `small-q5_1` | `clang-cl` | 4 | 32,2–39,7 s (4 pasadas) | 30–37 s | 555 MiB |
+| `small-q5_1` | `clang-cl` | 8 | 35,4 s | 33 s | 582 MiB |
+| `base-q5_1` | `clang-cl` | 4 | 8,0–9,5 s (3 pasadas) | 7–9 s | 352 MiB |
+| `small-q5_1` | MSVC 2019 | 4 | 283,7–335,1 s | 261–308 s | 495 MiB |
+| `base-q5_1` | MSVC 2019 | 4 | 74,5–82,8 s | 69–76 s | 315 MiB |
+
+- **Otras pruebas**: OpenMP no aporta una mejora clara, así que no se activa. Con 8 hilos no se gana frente a 4, por lo que se mantiene el máximo de 4 de R1.
+- **Límite de esta medición**: mide velocidad y memoria. La voz sintética no sirve para validar la precisión, que se comprueba con dictados reales en T077 (SC-003). Si `small-q5_1` dejara de cumplir SC-002 en esa validación, la alternativa es `ggml-base-q5_1.bin` (57 MiB, SHA-256 `422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898`), que con voz sintética comete más errores de transcripción.
 - **Alternativas descartadas**: `medium-q5_0` (514 MiB, demasiado lento para SC-002); descarga en el primer arranque (incumple el Principio I).
 
 ## R3. Captura del micrófono

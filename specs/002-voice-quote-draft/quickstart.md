@@ -9,13 +9,15 @@ Además de lo necesario para la feature 001:
 | Requisito | Comprobación | Nota |
 |---|---|---|
 | CMake | `cmake --version` | Necesario para compilar whisper.cpp |
-| LLVM/Clang | `clang --version` | Definir `LIBCLANG_PATH` si no se detecta |
+| LLVM/Clang | `clang --version` | Definir `LIBCLANG_PATH` si no se detecta. whisper.cpp se compila con `clang-cl`: con MSVC es unas 8 veces más lento |
+| Ninja | `ninja --version` | Generador que usa CMake con `clang-cl` (ver `.cargo/config.toml`) |
 | Modelo de voz | `npm run model:fetch` | Se descarga una vez, verifica su hash y queda fuera de git |
 | Micrófono | Configuración de Windows > Privacidad > Micrófono | Solo para la validación manual |
 
 ```powershell
 winget install Kitware.CMake
 winget install LLVM.LLVM
+winget install Ninja-build.Ninja
 $env:LIBCLANG_PATH = "C:\Program Files\LLVM\bin"
 $env:CARGO_BUILD_JOBS = 2
 npm install
