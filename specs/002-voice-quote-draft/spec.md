@@ -95,11 +95,12 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 ### Edge Cases
 
 - **Concepto sin tarifa**: la línea conserva el concepto dictado y queda como "precio pendiente"; la app nunca inventa, estima ni deduce un precio.
+- **Concepto que se parece a una tarifa sin coincidir** (p. ej. "tubo bajante de PVC" con la tarifa "Bajante de hierro"): la línea queda como "precio pendiente" y la tarifa parecida se ofrece como sugerencia, sin aplicar su precio.
 - **Concepto que encaja con varias tarifas** (p. ej. "pintura" con tarifas por metro y por hora, sin unidad dictada): la app no elige por su cuenta; la línea queda pendiente y ofrece esas tarifas para elegir una.
 - **Cantidad ausente o ambigua** (p. ej. "unos cuantos metros"): la línea queda como "cantidad pendiente", sin importe y fuera del total, hasta que el profesional la indique.
 - **Unidad ausente**: si el concepto solo tiene una tarifa, se usa la unidad de esa tarifa.
 - **Unidad dictada distinta de la tarifa** (p. ej. "2 horas" con una tarifa por metro): la app no convierte ni aplica ese precio; la línea queda como "precio pendiente" y sugiere la tarifa parecida.
-- **Rectificación durante el dictado** (p. ej. "3 metros, no, mejor 4"): la línea se marca para revisar y muestra el fragmento dictado original.
+- **Rectificación durante el dictado** (p. ej. "3 metros, no, mejor 4"): la línea queda como "cantidad pendiente" y muestra el fragmento dictado para que el profesional escriba la cantidad correcta.
 - **Audio vacío o solo silencio**: no se crea ningún borrador; la app avisa de que no ha oído nada y ofrece repetir el dictado o escribir el texto.
 - **Audio muy ruidoso**: la app transcribe lo que pueda, avisa de que conviene revisar el texto y conserva el audio para poder repetir la transcripción.
 - **Audio muy largo**: un minuto antes del límite de 10 minutos la app avisa; al llegar al límite detiene la grabación y procesa lo grabado sin perderlo.
@@ -107,10 +108,11 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 - **Audio importado de más de 10 minutos**: la app lo rechaza indicando el límite, sin procesar solo una parte.
 - **Varios trabajos mezclados en un dictado**: cada trabajo reconocido genera su propia línea, en el orden dictado, dentro de un único borrador. Un mismo concepto dictado dos veces da dos líneas, que no se suman.
 - **Texto que no se puede interpretar**: los fragmentos que no se convierten en línea se muestran aparte, para que nada dictado se pierda sin que el profesional lo sepa.
-- **Micrófono no disponible o sin permiso**: la app explica el problema en lenguaje sencillo, indica cómo resolverlo y ofrece escribir la visita a mano.
+- **Micrófono no disponible o sin permiso**: la app explica el problema en lenguaje sencillo, indica cómo resolverlo y ofrece importar un audio o escribir la visita a mano.
 - **Micrófono desconectado mientras se graba**: la grabación se detiene, se conserva lo grabado y la app ofrece procesarlo.
 - **Sin tarifas creadas**: el borrador se genera con todas las líneas como "precio pendiente" y la app ofrece un acceso directo a crear tarifas.
 - **Tarifa modificada o borrada después de generar el borrador**: las líneas conservan el precio que tenían; solo cambia si el profesional regenera el borrador o reasigna la tarifa.
+- **IVA del negocio modificado después de generar el borrador**: el borrador conserva el tipo que tenía, avisa del cambio y ofrece actualizarlo.
 - **Cierre inesperado de la app durante el dictado o la edición**: al volver a abrirla se recuperan el audio ya grabado y el borrador en curso.
 
 ## Requirements *(mandatory)*
@@ -143,10 +145,11 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 
 - **FR-015**: El sistema MUST convertir el texto en líneas con concepto, cantidad, unidad, precio e importe, creando una línea por cada trabajo reconocido y respetando el orden del texto.
 - **FR-016**: El sistema MUST reconocer cantidades expresadas con cifras o con palabras, incluidas las fracciones habituales (p. ej. "tres", "metro y medio").
-- **FR-017**: El sistema MUST buscar cada concepto en las tarifas del profesional sin distinguir mayúsculas, tildes ni espacios sobrantes, teniendo en cuenta la unidad cuando exista más de una tarifa con ese concepto.
+- **FR-017**: El sistema MUST aplicar automáticamente una tarifa solo si todas las palabras de su concepto aparecen en el fragmento dictado (sin distinguir mayúsculas, tildes, espacios sobrantes, singular ni plural) y solo encaja una tarifa, teniendo en cuenta la unidad cuando exista más de una tarifa con ese concepto.
+- **FR-017b**: Si una tarifa solo se parece a lo dictado sin cumplir FR-017, el sistema MUST dejar la línea como "precio pendiente" y ofrecer esa tarifa como sugerencia, sin aplicar su precio hasta que el profesional la elija.
 - **FR-018**: Si un concepto no tiene tarifa, el sistema MUST marcar la línea visiblemente como "precio pendiente" y MUST NOT inventar, estimar ni deducir ningún precio.
 - **FR-019**: Si un concepto encaja con más de una tarifa, el sistema MUST dejar la línea pendiente y ofrecer esas tarifas para que el profesional elija.
-- **FR-020**: Si la cantidad falta o es ambigua, el sistema MUST marcar la línea como "cantidad pendiente" y MUST NOT suponer ningún valor.
+- **FR-020**: Si la cantidad falta, es ambigua o el profesional la rectifica al dictar, el sistema MUST marcar la línea como "cantidad pendiente", mostrar el fragmento dictado y MUST NOT suponer ningún valor.
 - **FR-021**: Si la unidad dictada no coincide con la de la tarifa, el sistema MUST NOT convertir unidades ni aplicar ese precio, y MUST dejar la línea como "precio pendiente" sugiriendo la tarifa parecida.
 - **FR-022**: El sistema MUST mostrar aparte los fragmentos del texto que no haya podido convertir en líneas.
 - **FR-023**: Sin tarifas creadas, el sistema MUST generar el borrador con las líneas pendientes de precio y ofrecer un acceso directo a crear tarifas.
@@ -161,7 +164,8 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 **Cálculo**
 
 - **FR-028**: El importe de cada línea MUST ser la cantidad por el precio, redondeado al céntimo.
-- **FR-029**: El sistema MUST mostrar la base (suma de importes sin IVA), el IVA según el tipo general del negocio y el total con IVA.
+- **FR-029**: El sistema MUST mostrar la base (suma de importes sin IVA), el IVA según el tipo aplicado al borrador y el total con IVA. El tipo aplicado MUST ser el general del negocio en el momento de generar el borrador.
+- **FR-029b**: Si el tipo de IVA general del negocio cambia después de generar el borrador, el sistema MUST conservar el tipo aplicado, avisar del cambio y ofrecer actualizarlo; el total MUST NOT cambiar hasta que el profesional lo acepte.
 - **FR-030**: Cualquier cambio en una línea MUST actualizar al momento su importe, la base, el IVA y el total.
 - **FR-031**: Las líneas pendientes MUST quedar fuera de la base y del total; mientras existan, el sistema MUST indicar que el total es provisional y cuántas líneas faltan por completar.
 
@@ -186,7 +190,7 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 - **Dictado**: grabación de la visita. Atributos: audio, duración, origen (grabado en el equipo o importado), estado (grabando, procesando, transcrito, fallido). Pertenece a un borrador.
 - **Texto de la visita**: contenido del que nace el borrador. Atributos: texto, origen (transcrito o escrito a mano), si se ha corregido.
 - **Borrador de presupuesto**: propuesta en revisión. Atributos: líneas, base, tipo de IVA aplicado, IVA, total, estado (borrador o revisado), si tiene cambios manuales. Solo hay uno en curso.
-- **Línea del borrador**: un trabajo o material. Atributos: concepto, cantidad, unidad, precio, importe, origen del precio (tarifa, manual o pendiente), tarifa de origen, marcas de pendiente o de revisión y fragmento de texto del que procede.
+- **Línea del borrador**: un trabajo o material. Atributos: concepto, cantidad, unidad, precio, importe, origen del precio (tarifa, manual o pendiente), tarifa de origen, marcas de pendiente (precio o cantidad) y fragmento de texto del que procede.
 - **Tarifa**: definida en la feature 001. Es la fuente de los precios de las líneas.
 - **Perfil del negocio**: definido en la feature 001. Aporta el tipo de IVA general.
 
@@ -208,7 +212,6 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 - La app se usa en un ordenador con Windows; no hay versión para móvil en esta feature. Cuando no tiene el ordenador delante, el profesional graba con la aplicación de grabación de su móvil y copia el audio al equipo por sus propios medios.
 - El motor de transcripción local se instala con la app y funciona desde el primer uso, sin descargas posteriores.
 - Esta feature solo usa la transcripción local; la API externa opcional que permite la constitución se tratará en otra feature.
-- El borrador se genera automáticamente tras la transcripción, porque el profesional suele tener las manos ocupadas; el texto se corrige después y el borrador se regenera.
 - Dar el borrador por bueno solo lo marca como revisado; la confirmación definitiva y el bloqueo del PDF se tratarán en la feature de generación del PDF.
 - Se reutilizan las tarifas, las unidades y el tipo de IVA general de la feature 001; un perfil del negocio incompleto no impide generar borradores.
 - Un "equipo de gama media" es un portátil con 4 núcleos y 8 GB de memoria.
@@ -220,3 +223,7 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 
 - Q: ¿Los datos del cliente final entran en esta feature o en otra? → A: En otra, junto con la generación del PDF.
 - Q: ¿Cómo se graba cuando el profesional tiene las manos ocupadas? → A: En el ordenador con un solo gesto para empezar y otro para parar, y además importando un audio grabado con el móvil.
+- Q: ¿Cuándo debe la app aplicar automáticamente el precio de una tarifa a un concepto dictado? → A: Si todas las palabras de la tarifa aparecen en lo dictado, admitiendo singular y plural, y solo encaja una tarifa; los parecidos dudosos quedan pendientes y se ofrecen como sugerencia, sin precio.
+- Q: ¿Debe la app generar el borrador en cuanto termina la transcripción, o esperar a que el profesional revise antes el texto? → A: Lo genera automáticamente y muestra el texto junto a él para corregirlo y regenerar.
+- Q: ¿Qué debe hacer la app con una línea en la que el profesional se rectifica al dictar, como "3 metros, no, mejor 4"? → A: La deja como "cantidad pendiente", muestra el fragmento dictado y el profesional escribe la cantidad correcta.
+- Q: Si el profesional cambia el tipo de IVA de su negocio cuando ya tiene un borrador en curso, ¿qué IVA debe aplicar ese borrador? → A: Conserva el IVA que tenía al generarse, avisa de que el del negocio ha cambiado y ofrece actualizarlo.
