@@ -60,7 +60,7 @@ Al generar el documento, el profesional elige la carpeta y el nombre del archivo
 
 **Acceptance Scenarios**:
 
-1. **Given** la generación confirmada, **When** se pide la ubicación, **Then** la app propone un nombre de archivo que incluye la palabra "Presupuesto" y la fecha del día, y el profesional puede cambiarlo.
+1. **Given** la generación confirmada, **When** se pide la ubicación, **Then** la app propone un nombre de archivo que incluye la palabra "Presupuesto", el número del presupuesto y la fecha del día, y el profesional puede cambiarlo.
 2. **Given** una carpeta elegida, **When** el PDF termina de generarse, **Then** el archivo está en esa carpeta y la app muestra su nombre y su ubicación completa.
 3. **Given** la elección de ubicación abierta, **When** el profesional la cancela, **Then** no se crea ningún archivo y el borrador no cambia.
 4. **Given** un archivo con el mismo nombre en la carpeta elegida, **When** el profesional intenta guardar, **Then** la app le pregunta si quiere sustituirlo y, si no acepta, conserva el archivo existente y le deja elegir otro nombre.
@@ -97,7 +97,8 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **Primer presupuesto del año**: la numeración empieza en 001 con el año de la fecha de emisión.
 - **Más de 999 presupuestos en un año**: la numeración continúa con más cifras (p. ej. 2026-1000).
 - **Generación cancelada o fallida**: el número propuesto no se gasta y se vuelve a proponer.
-- **Otro PDF del mismo borrador**: la app propone el número que ya tenía ese presupuesto, sin gastar uno nuevo.
+- **Otro PDF del mismo borrador sin cambios**: la app propone el número que ya tenía ese presupuesto, sin gastar uno nuevo.
+- **Otro PDF de un borrador con líneas o IVA cambiados**: la app propone el siguiente número de la serie, para que dos documentos con contenido distinto no compartan número. El profesional puede cambiarlo antes de confirmar.
 - **Validez no válida**: la app rechaza un plazo que no sea un número entero de días entre 1 y 365 e indica el motivo.
 - **Ubicación sin permisos**: la app explica en lenguaje sencillo que no puede guardar ahí y permite elegir otra ubicación sin repetir la confirmación.
 - **Sin espacio suficiente**: la app lo indica, permite elegir otra ubicación y no deja ningún archivo incompleto.
@@ -107,7 +108,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **Carácter que el PDF no puede mostrar** (p. ej. un emoji en un concepto o en el nombre del cliente): la app no genera el PDF e indica qué dato y qué carácter hay que corregir.
 - **IVA del negocio cambiado después de generar el borrador**: el aviso de la confirmación no impide generar el PDF con el tipo aplicado al borrador. Si el profesional elige actualizarlo, los importes se recalculan y el borrador vuelve a requerir revisión antes de generar el PDF.
 - **Fragmentos del dictado sin interpretar**: no aparecen en el PDF; la petición de confirmación recuerda que existen para que el profesional decida si le falta alguna línea.
-- **Borrador editado después de generar un PDF**: el archivo ya generado no cambia. El borrador vuelve a requerir revisión y se puede generar otro PDF.
+- **Borrador editado después de generar un PDF**: el archivo ya generado no cambia. El borrador vuelve a requerir revisión y se puede generar otro PDF con un número nuevo.
 - **Pulsación repetida del botón de generar**: se genera un único documento.
 - **Cierre inesperado durante la generación**: el borrador se conserva y no queda ningún archivo incompleto con el nombre elegido.
 
@@ -135,7 +136,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **FR-012**: El PDF MUST mostrar el nombre del cliente, que es obligatorio, y, si se han rellenado, su dirección, teléfono, email y NIF. Los datos no rellenados MUST NOT dejar huecos ni etiquetas vacías.
 - **FR-012b**: El sistema MUST conservar los datos del cliente, el número y la validez junto al borrador en curso entre sesiones, y MUST vaciarlos al empezar un borrador nuevo.
 - **FR-013**: El PDF MUST mostrar el número del presupuesto. El sistema MUST proponer el siguiente número correlativo del año de emisión con el formato año-número de al menos tres cifras (p. ej. 2026-001), y el profesional MUST poder cambiarlo antes de confirmar.
-- **FR-013b**: Un número MUST gastarse solo cuando el PDF se haya guardado correctamente. Los PDF sucesivos de un mismo borrador MUST proponer el número que ya tenía.
+- **FR-013b**: Un número MUST gastarse solo cuando el PDF se haya guardado correctamente. Si las líneas y el tipo de IVA del borrador no han cambiado desde el último PDF guardado, el sistema MUST proponer el número que ya tenía; si han cambiado, MUST proponer el siguiente número de la serie. Corregir solo los datos del cliente o la validez MUST NOT cambiar el número propuesto.
 - **FR-013c**: Si el profesional cambia el número por otro con formato año-número, la numeración de ese año MUST continuar a partir del mayor número usado. Un número con otro formato MUST NOT alterar la serie automática.
 - **FR-014**: El PDF MUST mostrar la fecha de emisión, que es automáticamente el día de la generación, y la fecha de validez, en formato dd/mm/aaaa.
 - **FR-014b**: La validez MUST ser de 30 días por defecto y el profesional MUST poder cambiarla en cada presupuesto por un número entero de días entre 1 y 365. La fecha de validez MUST ser la fecha de emisión más esos días.
@@ -151,7 +152,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 
 **Guardado del archivo**
 
-- **FR-020**: El profesional MUST poder elegir la carpeta y el nombre del archivo en cada generación. El sistema MUST proponer un nombre que incluya "Presupuesto" y la fecha del día, y MUST asegurar que el archivo termine en ".pdf".
+- **FR-020**: El profesional MUST poder elegir la carpeta y el nombre del archivo en cada generación. El sistema MUST proponer un nombre que incluya "Presupuesto", el número del presupuesto y la fecha del día (p. ej. "Presupuesto 2026-001 2026-11-18.pdf"), sustituyendo por un guion los caracteres que no se admiten en un nombre de archivo, y MUST asegurar que el archivo termine en ".pdf".
 - **FR-021**: Al terminar, el sistema MUST confirmar que el PDF se ha guardado e indicar su nombre y su ubicación completa.
 - **FR-022**: Si ya existe un archivo con ese nombre, el sistema MUST sustituirlo solo con la confirmación explícita del profesional.
 - **FR-023**: Si el archivo no se puede guardar por falta de permisos, de espacio, porque la ubicación no está disponible o porque está en uso, el sistema MUST explicar el motivo en lenguaje sencillo y permitir elegir otra ubicación o reintentar.
@@ -170,7 +171,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 
 - **Documento de presupuesto**: archivo PDF creado a partir del borrador revisado. Atributos: contenido, número del presupuesto, fecha de emisión, fecha de validez, número de páginas, nombre y ubicación elegidos. La app no guarda un registro de los documentos generados.
 - **Cliente del presupuesto**: destinatario del documento. Atributos: nombre (obligatorio), dirección, teléfono, email y NIF (opcionales). Pertenece al borrador en curso; no existe una agenda de clientes.
-- **Numeración de presupuestos**: serie correlativa por año. Atributos: año y último número usado. Es lo único que la app recuerda de los presupuestos ya emitidos.
+- **Numeración de presupuestos**: serie correlativa por año. Atributos: año y último número usado. De los presupuestos ya emitidos, la app solo recuerda esta serie y el último número emitido del borrador en curso.
 - **Borrador de presupuesto**: definido en la feature 002. Aporta las líneas, la base, el tipo de IVA aplicado, el IVA, el total y el estado de revisión.
 - **Línea del borrador**: definida en la feature 002. Aporta el concepto, la cantidad, la unidad, el precio, el importe y las marcas de pendiente.
 - **Perfil del negocio y logo**: definidos en la feature 001. Aportan la identidad del profesional en el documento.
@@ -191,8 +192,8 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 ## Assumptions
 
 - El PDF se genera a partir del único borrador en curso de la feature 002. Dar el borrador por bueno no sustituye a la confirmación explícita de esta feature.
-- El IVA se muestra desglosado como en el borrador: base, tipo aplicado, importe del IVA y total. Es un valor provisional hasta que Roberto defina el contenido exacto del documento.
-- El diseño es único, en A4 vertical: cabecera con logo y datos del negocio, tabla de líneas y totales al final. Es un valor provisional hasta que Roberto defina el diseño exacto.
+- El IVA se muestra desglosado como en el borrador: base, tipo aplicado, importe del IVA y total.
+- El diseño es único, en A4 vertical: cabecera con logo y datos del negocio, datos del cliente, tabla de líneas y totales al final.
 - Generar el PDF no cambia el estado del borrador, que sigue en curso hasta que el profesional empiece otro.
 - El profesional abre el archivo desde la carpeta elegida; la app solo le indica dónde está.
 - Los datos del cliente se muestran tal como se escriben, sin comprobar su formato, porque pueden ser de particulares, empresas o clientes extranjeros.
@@ -210,3 +211,5 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - Q: ¿Qué debe hacer la app si un dato del presupuesto lleva un carácter que el PDF no puede mostrar? → A: No generar el PDF e indicar qué dato y qué carácter hay que corregir.
 - Q: ¿El cambio del IVA del negocio impide generar el PDF? → A: No; se puede generar con el tipo aplicado al borrador. Si el profesional lo actualiza, el borrador vuelve a requerir revisión.
 - Q: ¿Pueden los registros técnicos locales contener datos del cliente o del presupuesto? → A: No; solo el detalle técnico necesario para diagnosticar fallos.
+- Q: ¿Se acepta el diseño propuesto para el documento? → A: Sí: A4 vertical, IVA desglosado y la estructura definida en el contrato del documento.
+- Q: Si se edita un presupuesto ya emitido, ¿qué número propone la app? → A: El siguiente de la serie si cambian las líneas o el IVA; el mismo si no cambian.

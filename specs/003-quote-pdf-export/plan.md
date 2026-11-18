@@ -75,9 +75,10 @@ src/
 ├── features/
 │   ├── voice-draft/DraftPage.tsx      # añade el botón "Generar PDF"
 │   └── quote-pdf/
-│       ├── QuotePdfDialog.tsx         # confirmación, avisos y resultado
+│       ├── QuotePdfDialog.tsx         # confirmación y composición del diálogo
 │       ├── QuoteDetailsForm.tsx       # cliente, número y validez
-│       ├── QuoteBlockers.tsx          # motivos de bloqueo y accesos directos
+│       ├── QuoteBlockers.tsx          # motivos de bloqueo, avisos y accesos directos
+│       ├── QuotePdfResult.tsx         # archivo guardado y errores con reintento
 │       ├── useQuotePdf.ts
 │       └── *.test.tsx
 └── shared/
@@ -113,7 +114,7 @@ src-tauri/
         ├── quote_repo.rs
         └── pdf_store.rs               # escritura atómica y clasificación de errores
 
-src-tauri/tests/quote_*.rs             # integración con DB y carpeta temporales
+src-tauri/tests/{quote_*,pdf_store}.rs # integración con DB y carpeta temporales
 e2e/                                   # recorrido hasta la confirmación
 ```
 

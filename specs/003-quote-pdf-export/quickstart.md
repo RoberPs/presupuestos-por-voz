@@ -75,9 +75,11 @@ Con `npm run tauri dev`:
 
 1. Generar un PDF: número `<año>-001`.
 2. Generar otro PDF del mismo borrador: propone el mismo número.
-3. Empezar un borrador nuevo: propone `<año>-002`.
-4. Cambiarlo a `<año>-050` y guardar. En el siguiente borrador propone `<año>-051`.
-5. Cambiarlo a `OBRA-7` y guardar. En el siguiente borrador sigue proponiendo `<año>-051`.
+3. Corregir solo el teléfono del cliente: sigue proponiendo `<año>-001`.
+4. Cambiar la cantidad de una línea, dar el borrador por bueno y generar: propone `<año>-002`.
+5. Empezar un borrador nuevo: propone `<año>-003`.
+6. Cambiarlo a `<año>-050` y guardar. En el siguiente borrador propone `<año>-051`.
+7. Cambiarlo a `OBRA-7` y guardar. En el siguiente borrador sigue proponiendo `<año>-051`.
 
 ### 5. Datos conservados
 
@@ -101,7 +103,13 @@ Con 200 líneas de conceptos de 160 caracteres:
 
 ### 8. Sin conexión (Historia 4)
 
-Desactivar la red del equipo y repetir el escenario 1. El documento es equivalente y no aparece ningún aviso.
+Desactivar la red del equipo y repetir:
+
+1. El escenario 1: el documento es equivalente.
+2. El bloqueo por una línea con precio pendiente del escenario 2.
+3. El guardado del escenario 3, eligiendo una carpeta y sustituyendo un archivo existente.
+
+En ningún caso aparece un aviso por falta de red (SC-008).
 
 ## Verificación PDF/A
 

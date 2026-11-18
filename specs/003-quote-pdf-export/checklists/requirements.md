@@ -32,4 +32,4 @@
 ## Notes
 
 - Resueltas el 2026-11-18 con las opciones recomendadas: FR-012 (datos del cliente), FR-013 (numeración) y FR-014 (fechas y validez).
-- El desglose del IVA y el diseño del documento figuran en Assumptions como valores provisionales.
+- El desglose del IVA y el diseño del documento quedaron aceptados el 2026-11-18.

@@ -27,7 +27,9 @@ Datos del presupuesto en curso (FR-012b). No cambian el estado de revisión del 
 | `client_phone` | TEXT NULL | Hasta 30 caracteres |
 | `client_email` | TEXT NULL | Hasta 254 caracteres |
 | `client_tax_id` | TEXT NULL | Hasta 20 caracteres |
-| `quote_number` | TEXT NULL | Hasta 30 caracteres. `NULL` = usar el número automático; vacío = el profesional lo ha borrado |
+| `quote_number` | TEXT NULL | Hasta 30 caracteres. Número escrito a mano. `NULL` = usar el número propuesto por la app; vacío = el profesional lo ha borrado |
+| `issued_number` | TEXT NULL | Número del último PDF guardado de este borrador |
+| `issued_content_hash` | TEXT NULL | Huella de contenido de ese PDF. Se rellena junto con `issued_number` |
 | `validity_days` | INTEGER NOT NULL | 1–365; 30 por defecto (FR-014b) |
 
 Los textos se guardan sin espacios sobrantes y sin comprobar su formato. Un dato opcional vacío se guarda como `NULL`.
@@ -38,7 +40,9 @@ Los textos se guardan sin espacios sobrantes y sin comprobar su formato. Un dato
 |---|---|
 | Se escribe el número que propone la app | `quote_number = NULL`: sigue siendo automático |
 | Se escribe otro número | Se guarda tal cual |
-| El PDF se guarda correctamente | `quote_number` pasa a ser el número usado (FR-013b) |
+| El PDF se guarda correctamente | `issued_number` e `issued_content_hash` guardan lo emitido y `quote_number` vuelve a `NULL` (FR-013b) |
+| Cambian las líneas o el IVA tras emitir | La huella deja de coincidir y se propone el siguiente número |
+| Cambian solo el cliente o la validez | La huella coincide y se propone el mismo número |
 | Se regenera el mismo borrador | Los datos se conservan |
 | Empieza un borrador nuevo o se descarta | La cascada borra la fila |
 
@@ -52,8 +56,9 @@ Los textos se guardan sin espacios sobrantes y sin comprobar su formato. Un dato
 | `last_number` | INTEGER NOT NULL | 0–999 999 999 |
 
 ```text
-propuesto = quote_details.quote_number
-            o, si es NULL, "<año de emisión>-<last_number + 1 con al menos 3 cifras>"
+propuesto = quote_details.quote_number, si no es NULL
+            o issued_number, si issued_content_hash = huella de contenido actual
+            o "<año de emisión>-<last_number + 1 con al menos 3 cifras>"
 
 al guardar el PDF, si el número usado cumple ^\d{4}-\d{3,9}$:
     last_number(año del número) = MAX(last_number, número usado)
@@ -66,9 +71,13 @@ al guardar el PDF, si el número usado cumple ^\d{4}-\d{3,9}$:
 ```text
 issue_date   = fecha local del día de la generación
 valid_until  = issue_date + validity_days
-file_name    = "Presupuesto <aaaa-mm-dd>.pdf"
+file_name    = "Presupuesto <número> <aaaa-mm-dd>.pdf"   (caracteres no admitidos del número → "-")
 token        = SHA-256 del contenido completo del documento
 ```
+
+### Huella de contenido
+
+SHA-256 de las líneas en orden (concepto, cantidad, unidad y precio) y del tipo de IVA. No incluye el cliente, las fechas, la validez ni el número.
 
 ### Contenido del token
 
@@ -94,7 +103,7 @@ Número, fechas, datos del cliente, datos del negocio, huella del logo, líneas 
 | Aviso | Condición |
 |---|---|
 | `noLogo` | El negocio no tiene logo |
-| `logoUnreadable` | El logo guardado no se puede leer |
+| `logoUnreadable` | El profesional ha aceptado seguir sin el logo ilegible. Hasta entonces, actúa como bloqueo |
 | `vatChanged` | El IVA del negocio difiere del aplicado al borrador. No bloquea; actualizarlo con `draft_apply_current_vat` devuelve el borrador a `draft` (FR-005b) |
 | `unparsedFragments` | Hay fragmentos del dictado sin interpretar |
 
@@ -124,6 +133,6 @@ Solo puede haber una generación activa a la vez (FR-026).
 
 ```text
 <carpeta elegida>/
-├── Presupuesto 2026-11-18.pdf      # documento final
-└── .<nombre>.<proceso>-<hora>.tmp  # solo mientras se escribe
+├── Presupuesto 2026-001 2026-11-18.pdf  # documento final
+└── .presupuesto.tmp                     # solo mientras se escribe; la siguiente generación sustituye el que quede tras un cierre inesperado
 ```

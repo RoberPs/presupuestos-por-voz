@@ -80,7 +80,7 @@ Comprobado sobre esos archivos con PyMuPDF y pypdf:
 
 ## R8. Escritura segura
 
-- **Decisión**: escribir en un temporal en la **misma carpeta**, forzar el volcado a disco y renombrarlo al nombre elegido. Ante cualquier fallo, se borra el temporal.
+- **Decisión**: escribir en un temporal de nombre corto y fijo (`.presupuesto.tmp`) en la **misma carpeta**, forzar el volcado a disco y renombrarlo al nombre elegido. Ante cualquier fallo, se borra el temporal. Al ser fijo, no alarga la ruta y la siguiente generación sustituye el que deje un cierre inesperado.
 - **Rationale**: el renombrado es atómico en un mismo volumen, de modo que nunca queda un archivo a medias y el anterior sigue intacto (FR-024).
 
 | Error de Windows | Código del contrato |
@@ -99,6 +99,7 @@ Un error 5 al renombrar indica que el destino está bloqueado o es de solo lectu
 - **Formato reconocido**: `^\d{4}-\d{3,9}$`. Cualquier otro texto se admite, pero no altera la serie (FR-013c).
 - **Rationale**: es lo mínimo que exige FR-013 sin crear un historial, que está fuera de alcance.
 - **Orden**: se actualiza el contador dentro de una transacción, se escribe el archivo y se confirma. Si falla la escritura, el número no se gasta (FR-013b).
+- **Reemisión**: al guardar el PDF se conserva una huella de las líneas y del IVA. Si la huella coincide, se propone el mismo número; si no, el siguiente. Así, dos documentos con contenido distinto no comparten número, sin necesidad de un historial.
 
 ## R10. Datos del presupuesto al regenerar
 

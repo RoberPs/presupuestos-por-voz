@@ -85,7 +85,7 @@ Errores: `invalidState` si no hay borrador.
 
 ### `quote_details_save(args: { details: QuoteDetailsInput; allowMissingLogo: boolean })` → `QuotePreparationView`
 
-Guarda los datos del cliente, el número y la validez (FR-012b). No cambia el estado de revisión del borrador. La interfaz lo llama al salir de cada campo.
+Guarda los datos del cliente, el número y la validez (FR-012b). No cambia el estado de revisión del borrador. La interfaz lo llama al salir de cada campo y siempre al pulsar confirmar: espera su respuesta y llama a `quote_generate` con el `confirmationToken` que devuelve. Si la respuesta trae bloqueos, los muestra y no genera. El botón de confirmar no se desactiva por tener datos sin guardar.
 
 Un nombre o un número vacíos se guardan y aparecen como bloqueo. Errores: `validation` con `TOO_LONG` o `VALIDITY_INVALID`; `invalidState` si no hay borrador.
 

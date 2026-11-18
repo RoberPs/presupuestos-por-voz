@@ -2,7 +2,7 @@
 
 **Feature**: `003-quote-pdf-export` | **Fecha**: 2026-11-18
 
-Define el resultado visible del documento. El diseño es provisional hasta que Roberto defina el definitivo (spec, Assumptions).
+Define el resultado visible del documento. Diseño aceptado el 2026-11-18.
 
 ## Formato
 

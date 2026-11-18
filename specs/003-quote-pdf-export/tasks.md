@@ -77,32 +77,32 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 
 > **NOTE: escribir estas pruebas primero y comprobar que fallan antes de implementar.**
 
-- [ ] T015 [P] [US1] Crear `src-tauri/tests/quote_numbering.rs`: primer número del año `2026-001`; `2026-007` propone `2026-008`; `2026-999` propone `2026-1000`; un número con formato año-número actualiza la serie con el mayor valor; `2026-07` y `OBRA-7` no la alteran (FR-013 y FR-013c).
+- [ ] T015 [P] [US1] Crear `src-tauri/tests/quote_numbering.rs`: primer número del año `2026-001`; `2026-007` propone `2026-008`; `2026-999` propone `2026-1000`; un número con formato año-número actualiza la serie con el mayor valor; `2026-07` y `OBRA-7` no la alteran; orden de la propuesta de data-model.md: número escrito a mano, número emitido si la huella coincide y siguiente de la serie (FR-013, FR-013b y FR-013c).
 - [ ] T016 [P] [US1] Crear `src-tauri/tests/quote_dates.rs`: 18/11/2026 + 30 días = 18/12/2026; cambio de mes y de año; 29 de febrero; validez de 1 y 365 días; formato `dd/mm/aaaa` (FR-014 y FR-014b).
 - [ ] T017 [P] [US1] Crear `src-tauri/tests/quote_details.rs`: limpieza de espacios; opcionales vacíos pasan a `None`; longitudes máximas de data-model.md con `TOO_LONG`; validez 0, 366 y negativa con `VALIDITY_INVALID`.
-- [ ] T018 [P] [US1] Crear `src-tauri/tests/quote_layout.rs` con un medidor simulado: saltos de renglón por espacios y por caracteres; ninguna fila partida entre páginas; cabecera de tabla repetida; totales una sola vez y sin separar; `Página X de Y` en todas las páginas; sin logo no queda hueco; datos opcionales vacíos sin renglones; importe ancho reducido hasta 7 pt y después en varios renglones; 200 líneas de 160 caracteres sin perder texto (FR-012, FR-017 a FR-019 y SC-005).
+- [ ] T018 [P] [US1] Crear `src-tauri/tests/quote_layout.rs` con un medidor simulado: los datos obligatorios y opcionales del negocio aparecen en la cabecera (FR-007); saltos de renglón por espacios y por caracteres; ninguna fila partida entre páginas; cabecera de tabla repetida; totales una sola vez y sin separar; `Página X de Y` en todas las páginas; sin logo no queda hueco; datos opcionales vacíos sin renglones; importe ancho reducido hasta 7 pt y después en varios renglones; 200 líneas de 160 caracteres sin perder texto (FR-012, FR-017 a FR-019 y SC-005).
 - [ ] T019 [P] [US1] Crear `src-tauri/tests/quote_pdf_render.rs` con `lopdf`: páginas A4, tipografías incrustadas, marca PDF/A-2b, título y número de páginas correctos; un PNG con transparencia conserva su máscara; un JPG se incrusta; un documento sin logo se genera (FR-006, FR-015 y FR-016).
-- [ ] T020 [P] [US1] Crear `src-tauri/tests/quote_service.rs`: con el ejemplo de la spec, el documento contiene 75,00 €, 60,00 €, 135,00 €, 28,35 € y 163,35 € sin información interna (FR-008 a FR-011); guardar los datos no cambia el estado de revisión; se propone el siguiente número; el número se gasta al guardar y un segundo PDF propone el mismo (FR-013b); un token caducado devuelve `quoteChanged`, también al cambiar la fecha; una generación simultánea devuelve `invalidState` (FR-026).
+- [ ] T020 [P] [US1] Crear `src-tauri/tests/quote_service.rs`: con el ejemplo de la spec, el documento contiene 75,00 €, 60,00 €, 135,00 €, 28,35 € y 163,35 € sin información interna (FR-008 a FR-011); guardar los datos no cambia el estado de revisión; se propone el siguiente número; el número se gasta al guardar; un segundo PDF sin cambios, o con cambios solo en el cliente o la validez, propone el mismo; tras cambiar una línea o el IVA propone el siguiente (FR-013b); un token caducado devuelve `quoteChanged`, también al cambiar la fecha; una generación simultánea devuelve `invalidState` (FR-026); sin nombre del cliente o sin número no hay token y `generate_to_path` devuelve `quoteBlocked` (FR-001 y FR-012).
 - [ ] T021 [P] [US1] Ampliar `src-tauri/tests/draft_regenerate.rs`: regenerar conserva `quote_details`; un borrador nuevo, un dictado nuevo y descartar los vacían (FR-012b).
-- [ ] T022 [P] [US1] Crear `src/features/quote-pdf/QuotePdfDialog.test.tsx` con IPC simulado: muestra número, fechas, líneas y total; cancelar no llama a `quote_generate`; el nombre del cliente vacío impide confirmar; corregir un dato llama a `quote_details_save`; el botón se desactiva durante la generación.
+- [ ] T022 [P] [US1] Crear `src/features/quote-pdf/QuotePdfDialog.test.tsx` con IPC simulado: muestra número, fechas, líneas y total; cancelar no llama a `quote_generate`; el nombre del cliente vacío impide generar y muestra el motivo; corregir un dato llama a `quote_details_save`; al escribir un dato y pulsar confirmar directamente, un solo clic guarda los datos y llama a `quote_generate` con el token devuelto; el botón se desactiva solo durante la generación.
 
 ### Implementation for User Story 1
 
-- [ ] T023 [P] [US1] Implementar `src-tauri/src/domain/quote_doc/numbering.rs` según research.md (R9).
+- [ ] T023 [P] [US1] Implementar `src-tauri/src/domain/quote_doc/numbering.rs` según research.md (R9), incluidas la huella de contenido y el orden de la propuesta de data-model.md.
 - [ ] T024 [P] [US1] Implementar `src-tauri/src/domain/quote_doc/dates.rs` con `time`, recibiendo la fecha como parámetro (R12).
 - [ ] T025 [P] [US1] Implementar `src-tauri/src/domain/quote_doc/details.rs` según data-model.md.
 - [ ] T026 [US1] Implementar `src-tauri/src/domain/quote_doc/layout.rs` con el trait `TextMeasurer` y las reglas de [contracts/pdf-document.md](contracts/pdf-document.md).
 - [ ] T027 [P] [US1] Implementar `src-tauri/src/pdf/fonts.rs`: tipografías con `include_bytes!` y medida con `rustybuzz`, con cada texto medido en su propia tipografía (R3 y R4).
 - [ ] T028 [P] [US1] Implementar `src-tauri/src/pdf/logo.rs`: decodificar, reducir a 640 px como máximo sin ampliar y reescribir como PNG RGBA (R6).
 - [ ] T029 [US1] Implementar `src-tauri/src/pdf/renderer.rs`: dibujar el resultado de `layout.rs` con `krilla` en PDF/A-2b, con título, idioma `es-ES`, fecha del documento e interpolación de imagen desactivada (R1 y R2).
-- [ ] T030 [US1] Implementar en `src-tauri/src/storage/pdf_store.rs` la escritura atómica: temporal en la misma carpeta, volcado a disco, renombrado y borrado del temporal ante un fallo (R8).
-- [ ] T031 [US1] Implementar en `src-tauri/src/services/quote_service.rs` `prepare`, `save_details` y `generate_to_path`, con el token SHA-256 (R11) y el orden de la transacción de R9.
+- [ ] T030 [US1] Implementar en `src-tauri/src/storage/pdf_store.rs` la escritura atómica: temporal `.presupuesto.tmp` en la misma carpeta, volcado a disco, renombrado y borrado del temporal ante un fallo (R8).
+- [ ] T031 [US1] Implementar en `src-tauri/src/services/quote_service.rs` `prepare`, `save_details` y `generate_to_path`, con el token SHA-256 (R11), el orden de la transacción de R9 y los bloqueos `clientNameRequired` y `quoteNumberRequired` en `src-tauri/src/domain/quote_doc/blockers.rs`.
 - [ ] T032 [US1] Modificar `regenerate` en `src-tauri/src/services/draft_service.rs` para conservar `quote_details` en la misma transacción (R10).
 - [ ] T033 [US1] Implementar en `src-tauri/src/commands/quote.rs` `quote_prepare`, `quote_details_save` y `quote_generate`, con el diálogo nativo abierto desde Rust en un hilo de bloqueo y filtro PDF, y registrarlos en `src-tauri/src/lib.rs`.
 - [ ] T034 [P] [US1] Crear `src/features/quote-pdf/useQuotePdf.ts` con el estado de preparación, guardado de datos y generación.
 - [ ] T035 [P] [US1] Crear `src/features/quote-pdf/QuoteDetailsForm.tsx` con React Hook Form: cliente, número y validez, con objetivos de 44 px y foco visible.
-- [ ] T036 [US1] Crear `src/features/quote-pdf/QuotePdfDialog.tsx` con el resumen, el formulario y la confirmación explícita (FR-004).
-- [ ] T037 [US1] Añadir el botón "Generar PDF" y el diálogo a `src/features/voice-draft/DraftPage.tsx`.
+- [ ] T036 [US1] Crear `src/features/quote-pdf/QuotePdfDialog.tsx` con el resumen, el formulario y la confirmación explícita (FR-004). Al confirmar, espera a `quote_details_save` y usa el token que devuelve, según [contracts/ipc-commands.md](contracts/ipc-commands.md).
+- [ ] T037 [US1] Añadir el botón "Generar PDF" y el diálogo a `src/features/voice-draft/DraftPage.tsx`. El botón se muestra siempre que exista un borrador, aunque no esté revisado o tenga líneas pendientes.
 
 **Checkpoint**: un borrador revisado produce un PDF correcto en la carpeta elegida.
 
@@ -122,7 +122,7 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Implementar `src-tauri/src/domain/quote_doc/blockers.rs` con los bloqueos y avisos de data-model.md.
+- [ ] T041 [US2] Completar `src-tauri/src/domain/quote_doc/blockers.rs` con el resto de bloqueos y los avisos de data-model.md.
 - [ ] T042 [US2] Añadir a `src-tauri/src/pdf/fonts.rs` la comprobación de caracteres disponibles en la tipografía (FR-018b).
 - [ ] T043 [US2] Integrar bloqueos y avisos en `prepare` y `generate_to_path` de `src-tauri/src/services/quote_service.rs`, incluido `allowMissingLogo`.
 - [ ] T044 [US2] Crear `src/features/quote-pdf/QuoteBlockers.tsx` con los motivos, los avisos y los accesos directos a las líneas y a "Mi negocio".
@@ -141,13 +141,13 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 ### Tests for User Story 3 ⚠️
 
 - [ ] T046 [P] [US3] Crear `src-tauri/tests/pdf_store.rs`: tabla de códigos de Windows de research.md (R8); carpeta inexistente; archivo de destino bloqueado con `share_mode(0)` devuelve `PDF_FILE_IN_USE` y lo conserva intacto; sustituir un archivo funciona; tras un fallo no queda ningún temporal (FR-023 y FR-024).
-- [ ] T047 [P] [US3] Ampliar `src-tauri/tests/quote_service.rs`: nombre propuesto `Presupuesto 2026-11-18.pdf`; se añade `.pdf` si falta y no se duplica; un fallo de guardado no gasta el número ni modifica el borrador (FR-013b, FR-020 y FR-024).
+- [ ] T047 [P] [US3] Ampliar `src-tauri/tests/quote_service.rs`: nombre propuesto `Presupuesto 2026-001 2026-11-18.pdf`; el número `OBRA/7` se convierte en `OBRA-7` dentro del nombre; se añade `.pdf` si falta y no se duplica; un fallo de guardado no gasta el número ni modifica el borrador (FR-013b, FR-020 y FR-024).
 - [ ] T048 [P] [US3] Crear `src/features/quote-pdf/QuotePdfResult.test.tsx` con IPC simulado: muestra el nombre y la ruta completa; cancelar el diálogo vuelve a la confirmación sin error; cada `PdfSaveCode` muestra su mensaje y permite reintentar sin repetir la confirmación (FR-021, FR-023 y FR-025).
 
 ### Implementation for User Story 3
 
 - [ ] T049 [US3] Añadir a `src-tauri/src/storage/pdf_store.rs` la clasificación de errores en `PdfSaveCode` según R8, registrando solo el código del sistema.
-- [ ] T050 [US3] Añadir a `src-tauri/src/services/quote_service.rs` el nombre propuesto y la comprobación de la extensión `.pdf`.
+- [ ] T050 [US3] Añadir a `src-tauri/src/services/quote_service.rs` el nombre propuesto con el número y la fecha, la sustitución de caracteres no admitidos y la comprobación de la extensión `.pdf`.
 - [ ] T051 [US3] Ampliar `quote_generate` en `src-tauri/src/commands/quote.rs` para proponer el nombre, asociar el diálogo a la ventana principal y reabrirlo con el último destino tras un fallo.
 - [ ] T052 [US3] Crear `src/features/quote-pdf/QuotePdfResult.tsx` con la confirmación del guardado y los errores con reintento.
 - [ ] T053 [US3] Integrar `QuotePdfResult` en `src/features/quote-pdf/QuotePdfDialog.tsx`.
@@ -164,11 +164,11 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T054 [US4] Ampliar `src-tauri/tests/offline_guarantees.rs`: `capabilities/default.json` y la CSP no cambian, y `Cargo.toml` no incorpora clientes HTTP ni plugins de red (FR-027 y FR-028).
+- [ ] T054 [US4] Ampliar `src-tauri/tests/offline_guarantees.rs`: los archivos de `src/pdf/`, `src/services/quote_service.rs`, `src/storage/pdf_store.rs` y `src/commands/quote.rs` no contienen direcciones de red (FR-027 y FR-028). La CSP, los permisos y las dependencias de red ya están cubiertos por las pruebas existentes.
 
 ### Implementation for User Story 4
 
-- [ ] T055 [US4] Validar a mano el escenario 8 de `specs/003-quote-pdf-export/quickstart.md` con la red desactivada y anotar el resultado en esta tarea.
+- [ ] T055 [US4] Validar a mano el escenario 8 de `specs/003-quote-pdf-export/quickstart.md` con la red desactivada, cubriendo generación, bloqueo y guardado (SC-008), y anotar el resultado en esta tarea.
 
 **Checkpoint**: todas las historias funcionan con la red desactivada.
 
@@ -182,9 +182,9 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 - [ ] T057 Revisar `src-tauri/src/services/quote_service.rs`, `src-tauri/src/storage/pdf_store.rs` y `src-tauri/src/commands/quote.rs` para confirmar que ningún registro incluye datos del cliente, contenido del presupuesto ni rutas (FR-028b).
 - [ ] T058 Ejecutar `cargo test --manifest-path src-tauri/Cargo.toml --no-default-features`, `npm run test`, `npm run lint`, `npm run typecheck` y `cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings`, y corregir lo que falle.
 - [ ] T059 Medir la generación de un presupuesto de 50 líneas en la app compilada en modo release y anotar el resultado en `specs/003-quote-pdf-export/research.md` (SC-002).
-- [ ] T060 Validar a mano los escenarios 1 a 7 de `specs/003-quote-pdf-export/quickstart.md`, incluidos Acrobat, Edge y Chrome (SC-006), la sustitución de archivos (FR-022) y la falta de espacio.
+- [ ] T060 Validar a mano los escenarios 1 a 7 de `specs/003-quote-pdf-export/quickstart.md`, incluidos Acrobat, Edge y Chrome (SC-006), la sustitución de archivos (FR-022) y la falta de espacio, y cronometrar el paso de un borrador revisado al PDF guardado, que debe durar menos de 1 minuto (SC-001).
 - [ ] T061 Validar un documento generado con veraPDF, perfil PDF/A-2b, y anotar el resultado en `specs/003-quote-pdf-export/research.md`.
-- [ ] T062 [P] Actualizar `CLAUDE.md`: feature en curso, dependencias nuevas, carpeta `src/features/quote-pdf/` y módulo `src-tauri/src/pdf/`.
+- [ ] T062 [P] Actualizar `CLAUDE.md`: feature en curso, dependencias nuevas, carpeta `src/features/quote-pdf/`, módulo `src-tauri/src/pdf/` y la descarga única de la tipografía al preparar el repositorio (T002) como excepción a la regla de red.
 
 ---
 
