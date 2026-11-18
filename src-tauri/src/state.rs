@@ -1,7 +1,7 @@
 //! Estado compartido de la aplicación.
 
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Instant;
 
@@ -102,10 +102,47 @@ impl DictationRuntime {
     }
 }
 
+/// Generación del PDF en curso y último destino elegido. Solo se guarda en memoria.
+#[derive(Default)]
+pub struct QuoteRuntime {
+    generating: AtomicBool,
+    last_destination: Mutex<Option<PathBuf>>,
+}
+
+/// Mientras exista, ninguna otra generación puede empezar (FR-026).
+pub struct GenerationGuard<'a> {
+    runtime: &'a QuoteRuntime,
+}
+
+impl Drop for GenerationGuard<'_> {
+    fn drop(&mut self) {
+        self.runtime.generating.store(false, Ordering::SeqCst);
+    }
+}
+
+impl QuoteRuntime {
+    /// Empieza una generación. `None` si ya hay otra activa.
+    pub fn try_begin(&self) -> Option<GenerationGuard<'_>> {
+        self.generating
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .ok()
+            .map(|_| GenerationGuard { runtime: self })
+    }
+
+    pub fn last_destination(&self) -> Option<PathBuf> {
+        lock(&self.last_destination).clone()
+    }
+
+    pub fn set_last_destination(&self, destination: Option<PathBuf>) {
+        *lock(&self.last_destination) = destination;
+    }
+}
+
 pub struct AppState {
     pub conn: Mutex<Connection>,
     pub data_dir: PathBuf,
     pub dictation: DictationRuntime,
+    pub quote: QuoteRuntime,
     pub transcriber: Arc<dyn Transcriber>,
     pub recorder: Arc<dyn Recorder>,
 }
@@ -131,6 +168,7 @@ impl AppState {
             conn: Mutex::new(conn),
             data_dir,
             dictation: DictationRuntime::default(),
+            quote: QuoteRuntime::default(),
             transcriber,
             recorder,
         }

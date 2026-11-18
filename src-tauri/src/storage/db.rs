@@ -13,6 +13,7 @@ fn migrations() -> Migrations<'static> {
     Migrations::new(vec![
         M::up(include_str!("migrations/001_init.sql")),
         M::up(include_str!("migrations/002_voice_draft.sql")),
+        M::up(include_str!("migrations/003_quote_pdf.sql")),
     ])
 }
 

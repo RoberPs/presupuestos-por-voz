@@ -6,6 +6,7 @@ pub mod audio;
 pub mod commands;
 pub mod domain;
 pub mod error;
+pub mod pdf;
 pub mod services;
 pub mod state;
 pub mod storage;
@@ -135,6 +136,9 @@ pub fn run() {
             commands::draft::draft_apply_current_vat,
             commands::draft::draft_mark_reviewed,
             commands::draft::draft_discard,
+            commands::quote::quote_prepare,
+            commands::quote::quote_details_save,
+            commands::quote::quote_generate,
         ])
         .run(tauri::generate_context!())
         .expect("error al iniciar la aplicación");

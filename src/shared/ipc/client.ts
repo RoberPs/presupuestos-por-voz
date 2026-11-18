@@ -11,6 +11,9 @@ import type {
   LogoSetResult,
   ProcessingEvent,
   ProcessResult,
+  QuoteDetailsInput,
+  QuoteGenerateResult,
+  QuotePreparationView,
   Rate,
   RateInput,
   RecordingEvent,
@@ -30,6 +33,10 @@ const APP_ERROR_KINDS = [
   "confirmationRequired",
   "invalidState",
   "draftHasPending",
+  "quoteBlocked",
+  "quoteChanged",
+  "pdfSave",
+  "pdfRender",
 ];
 
 export function isAppError(e: unknown): e is AppError {
@@ -88,3 +95,10 @@ export const draftLineDelete = (lineId: number) =>
 export const draftApplyCurrentVat = () => invoke<DraftView>("draft_apply_current_vat");
 export const draftMarkReviewed = () => invoke<DraftView>("draft_mark_reviewed");
 export const draftDiscard = () => invoke<SessionView>("draft_discard");
+
+export const quotePrepare = (allowMissingLogo: boolean) =>
+  invoke<QuotePreparationView>("quote_prepare", { allowMissingLogo });
+export const quoteDetailsSave = (details: QuoteDetailsInput, allowMissingLogo: boolean) =>
+  invoke<QuotePreparationView>("quote_details_save", { details, allowMissingLogo });
+export const quoteGenerate = (confirmationToken: string, allowMissingLogo: boolean) =>
+  invoke<QuoteGenerateResult>("quote_generate", { confirmationToken, allowMissingLogo });

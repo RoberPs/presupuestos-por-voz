@@ -78,6 +78,24 @@ fn the_voice_model_travels_inside_the_installer() {
 }
 
 #[test]
+fn the_quote_pdf_code_contains_no_network_addresses() {
+    for file in [
+        "src/pdf/mod.rs",
+        "src/pdf/fonts.rs",
+        "src/pdf/logo.rs",
+        "src/pdf/renderer.rs",
+        "src/services/quote_service.rs",
+        "src/storage/pdf_store.rs",
+        "src/commands/quote.rs",
+    ] {
+        let source = read(file);
+        for scheme in ["http://", "https://", "ftp://", "ws://", "wss://"] {
+            assert!(!source.contains(scheme), "{file} contiene {scheme}");
+        }
+    }
+}
+
+#[test]
 fn the_app_never_downloads_the_model() {
     for file in ["src/lib.rs", "src/transcription/whisper.rs"] {
         let source = read(file);

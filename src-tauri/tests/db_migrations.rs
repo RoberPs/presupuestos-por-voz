@@ -140,10 +140,6 @@ fn insert_line(conn: &Connection, line: &LineRow) -> rusqlite::Result<usize> {
 #[test]
 fn migration_2_creates_the_draft_tables() {
     let conn = db::open_in_memory().unwrap();
-    let version: i64 = conn
-        .query_row("PRAGMA user_version", [], |r| r.get(0))
-        .unwrap();
-    assert_eq!(version, 2);
     for table in DRAFT_TABLES {
         let found: i64 = conn
             .query_row(
@@ -293,5 +289,112 @@ fn draft_tables_store_no_end_customer_data() {
                 "{table}.{column} parece un dato del cliente final"
             );
         }
+    }
+}
+
+// --- Migración 3: datos del presupuesto y numeración (feature 003) ---
+
+fn insert_details(conn: &Connection, draft_id: i64, validity_days: i64) -> rusqlite::Result<usize> {
+    conn.execute(
+        "INSERT INTO quote_details (draft_id, client_name, validity_days) VALUES (?1, 'Ana', ?2)",
+        params![draft_id, validity_days],
+    )
+}
+
+#[test]
+fn migration_3_is_the_latest_and_creates_its_tables() {
+    let conn = db::open_in_memory().unwrap();
+    let version: i64 = conn
+        .query_row("PRAGMA user_version", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(version, 3);
+    for table in ["quote_details", "quote_number_sequences"] {
+        let found: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
+                [table],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(found, 1, "falta la tabla {table}");
+    }
+}
+
+#[test]
+fn only_one_quote_details_row_can_exist() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    insert_details(&conn, 1, 30).unwrap();
+    assert!(insert_details(&conn, 1, 30).is_err());
+    assert!(insert_details(&conn, 2, 30).is_err());
+}
+
+#[test]
+fn validity_days_must_be_between_1_and_365() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    for invalid in [0, 366, -1] {
+        assert!(
+            insert_details(&conn, 1, invalid).is_err(),
+            "{invalid} días no debería admitirse"
+        );
+    }
+    insert_details(&conn, 1, 1).unwrap();
+    conn.execute("UPDATE quote_details SET validity_days = 365", [])
+        .unwrap();
+}
+
+#[test]
+fn validity_days_defaults_to_30() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    conn.execute(
+        "INSERT INTO quote_details (draft_id, client_name) VALUES (1, '')",
+        [],
+    )
+    .unwrap();
+    let days: i64 = conn
+        .query_row("SELECT validity_days FROM quote_details", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(days, 30);
+}
+
+#[test]
+fn deleting_the_draft_deletes_its_details_but_not_the_numbering() {
+    let conn = db::open_in_memory().unwrap();
+    insert_draft(&conn);
+    insert_details(&conn, 1, 30).unwrap();
+    conn.execute(
+        "INSERT INTO quote_number_sequences (year, last_number) VALUES (2026, 7)",
+        [],
+    )
+    .unwrap();
+
+    conn.execute("DELETE FROM quote_draft WHERE id = 1", [])
+        .unwrap();
+
+    let details: i64 = conn
+        .query_row("SELECT COUNT(*) FROM quote_details", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(details, 0);
+    let last: i64 = conn
+        .query_row(
+            "SELECT last_number FROM quote_number_sequences WHERE year = 2026",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(last, 7);
+}
+
+#[test]
+fn number_sequences_reject_values_out_of_range() {
+    let conn = db::open_in_memory().unwrap();
+    for (year, last) in [(0, 1), (10_000, 1), (2026, -1), (2026, 1_000_000_000)] {
+        let result = conn.execute(
+            "INSERT INTO quote_number_sequences (year, last_number) VALUES (?1, ?2)",
+            params![year, last],
+        );
+        assert!(result.is_err(), "({year}, {last}) no debería admitirse");
     }
 }

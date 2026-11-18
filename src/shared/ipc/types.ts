@@ -1,5 +1,6 @@
-// Espejo exacto de specs/001-business-profile-rates/contracts/ipc-commands.md y de
-// specs/002-voice-quote-draft/contracts/ipc-commands.md.
+// Espejo exacto de specs/001-business-profile-rates/contracts/ipc-commands.md,
+// specs/002-voice-quote-draft/contracts/ipc-commands.md y
+// specs/003-quote-pdf-export/contracts/ipc-commands.md.
 // Cualquier cambio se hace primero en el contrato y después aquí y en Rust.
 
 export type ErrorCode =
@@ -21,7 +22,8 @@ export type ErrorCode =
   | "QUANTITY_TOO_MANY_DECIMALS"
   | "QUANTITY_NOT_POSITIVE"
   | "AMOUNT_TOO_LARGE"
-  | "TEXT_REQUIRED";
+  | "TEXT_REQUIRED"
+  | "VALIDITY_INVALID";
 
 export type FieldError = { field: string; code: ErrorCode; message: string };
 
@@ -38,7 +40,11 @@ export type AppError =
   | { kind: "transcription"; code: TranscriptionCode; message: string }
   | { kind: "confirmationRequired"; reason: ConfirmationReason; message: string }
   | { kind: "invalidState"; message: string }
-  | { kind: "draftHasPending"; pendingLineIds: number[]; message: string };
+  | { kind: "draftHasPending"; pendingLineIds: number[]; message: string }
+  | { kind: "quoteBlocked"; blockers: QuoteBlocker[]; message: string }
+  | { kind: "quoteChanged"; message: string }
+  | { kind: "pdfSave"; code: PdfSaveCode; message: string }
+  | { kind: "pdfRender"; message: string };
 
 export type MicrophoneCode = "MIC_NOT_FOUND" | "MIC_ACCESS_DENIED" | "MIC_UNAVAILABLE";
 export type AudioRejectCode = "AUDIO_UNSUPPORTED_FORMAT" | "AUDIO_CORRUPT" | "AUDIO_TOO_LONG";
@@ -199,3 +205,56 @@ export type DraftLinePatch = {
   unitLabel?: string;
   price?: string;
 };
+
+// --- Feature 003: PDF del presupuesto ---
+
+export type PdfSaveCode =
+  | "PDF_ACCESS_DENIED"
+  | "PDF_DISK_FULL"
+  | "PDF_LOCATION_UNAVAILABLE"
+  | "PDF_FILE_IN_USE"
+  | "PDF_WRITE_FAILED";
+
+export type QuoteDetailsInput = {
+  clientName: string;
+  clientAddress: string | null;
+  clientPhone: string | null;
+  clientEmail: string | null;
+  clientTaxId: string | null;
+  quoteNumber: string;
+  validityDays: number;
+};
+
+export type QuoteBlocker =
+  | { kind: "noLines" }
+  | { kind: "pendingLines"; lines: { id: number; concept: string }[] }
+  | { kind: "notReviewed" }
+  | { kind: "profileIncomplete"; missingFields: FieldError[] }
+  | { kind: "clientNameRequired" }
+  | { kind: "quoteNumberRequired" }
+  | {
+      kind: "unsupportedCharacters";
+      fields: { field: string; label: string; characters: string[] }[];
+    }
+  | { kind: "logoUnreadable" };
+
+export type QuoteWarning =
+  | { kind: "noLogo" }
+  | { kind: "logoUnreadable" }
+  | { kind: "vatChanged"; appliedRatePercent: string; currentRatePercent: string }
+  | { kind: "unparsedFragments"; count: number };
+
+export type QuotePreparationView = {
+  details: QuoteDetailsInput;
+  issueDateDisplay: string;
+  validUntilDisplay: string;
+  lineCount: number;
+  totalDisplay: string;
+  blockers: QuoteBlocker[];
+  warnings: QuoteWarning[];
+  confirmationToken: string | null;
+};
+
+export type QuoteGenerateResult =
+  | { outcome: "saved"; fileName: string; fullPath: string; pageCount: number }
+  | { outcome: "cancelled" };

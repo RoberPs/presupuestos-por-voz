@@ -31,6 +31,9 @@ cpal = "0.18"
 symphonia = { version = "0.6", default-features = false, features = ["isomp4", "aac", "alac", "mp3", "wav", "pcm"] }
 rubato = "5"
 whisper-rs = { version = "0.16", optional = true }
+krilla = { version = "0.8.2", default-features = false, features = ["raster-images", "simple-text"] }
+rustybuzz = "0.20"
+time = { version = "0.3", features = ["local-offset"] }
 
 [features]
 default = ["local-transcription"]
@@ -38,6 +41,7 @@ local-transcription = ["dep:whisper-rs"]
 
 [dev-dependencies]
 tempfile = "3"
+lopdf = "0.47"
 
 [[example]]
 name = "transcribe_benchmark"

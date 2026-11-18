@@ -3,6 +3,7 @@ import { Banner } from "../../shared/components/Banner";
 import { Button } from "../../shared/components/Button";
 import { ConfirmDialog } from "../../shared/components/ConfirmDialog";
 import { es } from "../../shared/i18n/es";
+import { QuotePdfDialog } from "../quote-pdf/QuotePdfDialog";
 import { DictationPanel } from "./DictationPanel";
 import { DraftLinesTable } from "./DraftLinesTable";
 import { DraftTotals } from "./DraftTotals";
@@ -15,6 +16,7 @@ export function DraftPage() {
   const draft = session.session?.draft ?? null;
   const [confirmingNew, setConfirmingNew] = useState(false);
   const [writing, setWriting] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
   const showEditor = draft !== null || writing || Boolean(session.session?.pendingText);
 
   const startNew = () => {
@@ -71,8 +73,16 @@ export function DraftPage() {
                 {es.draft.review.markReviewed}
               </Button>
             )}
+            <Button onClick={() => setGeneratingPdf(true)}>{es.quotePdf.open}</Button>
           </div>
         </>
+      ) : null}
+
+      {generatingPdf ? (
+        <QuotePdfDialog
+          onClose={() => setGeneratingPdf(false)}
+          onApplyVat={session.applyCurrentVat}
+        />
       ) : null}
 
       <ConfirmDialog

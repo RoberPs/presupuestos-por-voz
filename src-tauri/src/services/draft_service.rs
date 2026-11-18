@@ -20,7 +20,7 @@ use crate::domain::rate::{RateView, MAX_CONCEPT_CHARS, MAX_UNIT_CHARS};
 use crate::error::{AppError, ConfirmationReason, ErrorCode, FieldError};
 use crate::state::{Activity, AppState};
 use crate::storage::dictation_repo::{self, Slot};
-use crate::storage::{draft_repo, profile_repo, rate_repo, recording_store, unit_repo};
+use crate::storage::{draft_repo, profile_repo, quote_repo, rate_repo, recording_store, unit_repo};
 
 /// IVA general cuando el negocio aún no ha guardado su perfil.
 const DEFAULT_VAT_RATE_BP: i64 = 2_100;
@@ -237,7 +237,12 @@ fn regenerate(conn: &Connection, text: &str, confirmed: bool) -> Result<DraftVie
         ));
     }
     let built = build_from_text(conn, text)?;
+    // `replace` borra la fila del borrador y, en cascada, los datos del presupuesto (R10).
+    let quote_details = quote_repo::get_details(conn)?;
     draft_repo::replace(conn, &built, text, previous.text_origin)?;
+    if let Some(details) = quote_details {
+        quote_repo::save_details(conn, &details)?;
+    }
     let corrected = previous.text_corrected || previous.source_text != text;
     draft_repo::set_source_text(conn, text, corrected)?;
     let draft = draft_repo::load(conn)?.ok_or_else(AppError::storage)?;

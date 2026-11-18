@@ -3,11 +3,13 @@
 mod common;
 
 use app_lib::domain::draft::{DraftStatus, TextOrigin};
+use app_lib::domain::quote_doc::QuoteDetails;
 use app_lib::domain::rate::RateInput;
 use app_lib::error::{AppError, ConfirmationReason, ErrorCode};
 use app_lib::services::draft_service::{self as draft, DraftLinePatch, GenerateMode};
 use app_lib::services::{dictation_service, profile_service, rate_service};
 use app_lib::state::AppState;
+use app_lib::storage::quote_repo;
 use common::{
     complete_input, draft_view, example_rates, reopen, seed_draft, state_in, EXAMPLE_TEXT,
 };
@@ -175,6 +177,56 @@ fn a_text_without_a_draft_survives_reopening() {
     let session = dictation_service::session(&state).unwrap();
     assert_eq!(session.pending_text.as_deref(), Some("cambiar grifo"));
     assert!(session.draft.is_none());
+}
+
+fn details_of(state: &AppState) -> Option<QuoteDetails> {
+    quote_repo::get_details(&state.conn().unwrap()).unwrap()
+}
+
+fn with_details(state: &AppState) -> QuoteDetails {
+    let details = QuoteDetails {
+        client_name: "Ana Ruiz".into(),
+        client_phone: Some("611 222 333".into()),
+        quote_number: Some("OBRA-7".into()),
+        issued_number: Some("2026-003".into()),
+        issued_content_hash: Some("huella".into()),
+        validity_days: 15,
+        ..QuoteDetails::default()
+    };
+    quote_repo::save_details(&state.conn().unwrap(), &details).unwrap();
+    details
+}
+
+#[test]
+fn regenerating_keeps_the_quote_details() {
+    let (_dir, state) = fixture();
+    let details = with_details(&state);
+    regenerate(&state, CORRECTED, false).unwrap();
+    assert_eq!(details_of(&state), Some(details));
+}
+
+#[test]
+fn a_new_draft_empties_the_quote_details() {
+    let (_dir, state) = fixture();
+    with_details(&state);
+    draft::generate_from_text(&state, CORRECTED, GenerateMode::New, true).unwrap();
+    assert_eq!(details_of(&state), None);
+}
+
+#[test]
+fn a_new_dictation_empties_the_quote_details() {
+    let (_dir, state) = fixture();
+    with_details(&state);
+    seed_draft(&state, CORRECTED);
+    assert_eq!(details_of(&state), None);
+}
+
+#[test]
+fn discarding_the_draft_empties_the_quote_details() {
+    let (_dir, state) = fixture();
+    with_details(&state);
+    draft::discard(&state).unwrap();
+    assert_eq!(details_of(&state), None);
 }
 
 #[test]

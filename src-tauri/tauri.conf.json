@@ -26,7 +26,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "resources": ["resources/models/ggml-small-q5_1.bin"],
+    "resources": [
+      "resources/models/ggml-small-q5_1.bin",
+      "resources/licenses/LiberationFonts-OFL.txt"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

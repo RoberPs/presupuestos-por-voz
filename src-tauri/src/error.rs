@@ -27,6 +27,7 @@ pub enum ErrorCode {
     QuantityNotPositive,
     AmountTooLarge,
     TextRequired,
+    ValidityInvalid,
 }
 
 impl ErrorCode {
@@ -66,6 +67,7 @@ impl ErrorCode {
                 "El importe es demasiado grande. Revisa la cantidad y el precio."
             }
             ErrorCode::TextRequired => "Escribe primero lo que quieres presupuestar.",
+            ErrorCode::ValidityInvalid => "La validez debe ser un número de días entre 1 y 365.",
         }
     }
 }
@@ -224,6 +226,74 @@ impl FieldError {
     }
 }
 
+/// Motivo por el que no se ha podido guardar el PDF (FR-023).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum PdfSaveCode {
+    PdfAccessDenied,
+    PdfDiskFull,
+    PdfLocationUnavailable,
+    PdfFileInUse,
+    PdfWriteFailed,
+}
+
+impl PdfSaveCode {
+    pub fn message(self) -> &'static str {
+        match self {
+            PdfSaveCode::PdfAccessDenied => {
+                "No tienes permiso para guardar en esa carpeta. Elige otra."
+            }
+            PdfSaveCode::PdfDiskFull => {
+                "No queda espacio suficiente en ese disco. Libera espacio o elige otra carpeta."
+            }
+            PdfSaveCode::PdfLocationUnavailable => {
+                "Esa carpeta ya no está disponible. Comprueba que el disco o la memoria siguen conectados, o elige otra."
+            }
+            PdfSaveCode::PdfFileInUse => {
+                "El archivo está abierto en otro programa. Ciérralo y vuelve a intentarlo, o elige otro nombre."
+            }
+            PdfSaveCode::PdfWriteFailed => {
+                "No se ha podido guardar el PDF. Inténtalo de nuevo o elige otra carpeta."
+            }
+        }
+    }
+}
+
+/// Línea pendiente de completar, identificada por su concepto (FR-002).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PendingLineRef {
+    pub id: i64,
+    pub concept: String,
+}
+
+/// Dato con caracteres que el PDF no puede mostrar (FR-018b).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UnsupportedField {
+    pub field: String,
+    pub label: String,
+    pub characters: Vec<String>,
+}
+
+/// Motivo por el que todavía no se puede generar el PDF (data-model.md).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(
+    tag = "kind",
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase"
+)]
+pub enum QuoteBlocker {
+    NoLines,
+    PendingLines { lines: Vec<PendingLineRef> },
+    NotReviewed,
+    ProfileIncomplete { missing_fields: Vec<FieldError> },
+    ClientNameRequired,
+    QuoteNumberRequired,
+    UnsupportedCharacters { fields: Vec<UnsupportedField> },
+    LogoUnreadable,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, thiserror::Error)]
 #[serde(
     tag = "kind",
@@ -274,6 +344,17 @@ pub enum AppError {
         pending_line_ids: Vec<i64>,
         message: String,
     },
+    #[error("{message}")]
+    QuoteBlocked {
+        blockers: Vec<QuoteBlocker>,
+        message: String,
+    },
+    #[error("{message}")]
+    QuoteChanged { message: String },
+    #[error("{message}")]
+    PdfSave { code: PdfSaveCode, message: String },
+    #[error("{message}")]
+    PdfRender { message: String },
 }
 
 pub const STORAGE_MESSAGE: &str = "No se ha podido guardar. Inténtalo de nuevo.";
@@ -345,6 +426,32 @@ impl AppError {
         AppError::DraftHasPending {
             pending_line_ids,
             message: "Faltan líneas por completar antes de dar el presupuesto por bueno.".into(),
+        }
+    }
+
+    pub fn quote_blocked(blockers: Vec<QuoteBlocker>) -> Self {
+        AppError::QuoteBlocked {
+            blockers,
+            message: "Todavía no se puede generar el PDF. Revisa lo que falta.".into(),
+        }
+    }
+
+    pub fn quote_changed() -> Self {
+        AppError::QuoteChanged {
+            message: "El presupuesto ha cambiado. Revísalo y vuelve a confirmar.".into(),
+        }
+    }
+
+    pub fn pdf_save(code: PdfSaveCode) -> Self {
+        AppError::PdfSave {
+            code,
+            message: code.message().to_string(),
+        }
+    }
+
+    pub fn pdf_render() -> Self {
+        AppError::PdfRender {
+            message: "No se ha podido preparar el PDF. Inténtalo de nuevo.".into(),
         }
     }
 }
@@ -428,5 +535,86 @@ mod tests {
         ))
         .unwrap();
         assert_eq!(json["errors"][0]["code"], "QUANTITY_TOO_MANY_DECIMALS");
+    }
+
+    #[test]
+    fn quote_errors_serialize_like_the_contract() {
+        let json = serde_json::to_value(AppError::quote_blocked(vec![
+            QuoteBlocker::NoLines,
+            QuoteBlocker::PendingLines {
+                lines: vec![PendingLineRef {
+                    id: 4,
+                    concept: "Bajante".into(),
+                }],
+            },
+            QuoteBlocker::NotReviewed,
+            QuoteBlocker::ProfileIncomplete {
+                missing_fields: vec![FieldError::new("taxId", ErrorCode::Required)],
+            },
+            QuoteBlocker::ClientNameRequired,
+            QuoteBlocker::QuoteNumberRequired,
+            QuoteBlocker::UnsupportedCharacters {
+                fields: vec![UnsupportedField {
+                    field: "clientName".into(),
+                    label: "Nombre del cliente".into(),
+                    characters: vec!["😀".into()],
+                }],
+            },
+            QuoteBlocker::LogoUnreadable,
+        ]))
+        .unwrap();
+        assert_eq!(json["kind"], "quoteBlocked");
+        assert!(json["message"].is_string());
+        let blockers = &json["blockers"];
+        assert_eq!(blockers[0]["kind"], "noLines");
+        assert_eq!(blockers[1]["kind"], "pendingLines");
+        assert_eq!(blockers[1]["lines"][0]["id"], 4);
+        assert_eq!(blockers[1]["lines"][0]["concept"], "Bajante");
+        assert_eq!(blockers[2]["kind"], "notReviewed");
+        assert_eq!(blockers[3]["kind"], "profileIncomplete");
+        assert_eq!(blockers[3]["missingFields"][0]["field"], "taxId");
+        assert_eq!(blockers[4]["kind"], "clientNameRequired");
+        assert_eq!(blockers[5]["kind"], "quoteNumberRequired");
+        assert_eq!(blockers[6]["kind"], "unsupportedCharacters");
+        assert_eq!(blockers[6]["fields"][0]["field"], "clientName");
+        assert_eq!(blockers[6]["fields"][0]["label"], "Nombre del cliente");
+        assert_eq!(blockers[6]["fields"][0]["characters"][0], "😀");
+        assert_eq!(blockers[7]["kind"], "logoUnreadable");
+
+        let json = serde_json::to_value(AppError::quote_changed()).unwrap();
+        assert_eq!(json["kind"], "quoteChanged");
+        assert!(json["message"].is_string());
+
+        let json = serde_json::to_value(AppError::pdf_render()).unwrap();
+        assert_eq!(json["kind"], "pdfRender");
+        assert!(json["message"].is_string());
+    }
+
+    #[test]
+    fn every_pdf_save_code_serializes_like_the_contract() {
+        for (code, expected) in [
+            (PdfSaveCode::PdfAccessDenied, "PDF_ACCESS_DENIED"),
+            (PdfSaveCode::PdfDiskFull, "PDF_DISK_FULL"),
+            (
+                PdfSaveCode::PdfLocationUnavailable,
+                "PDF_LOCATION_UNAVAILABLE",
+            ),
+            (PdfSaveCode::PdfFileInUse, "PDF_FILE_IN_USE"),
+            (PdfSaveCode::PdfWriteFailed, "PDF_WRITE_FAILED"),
+        ] {
+            let json = serde_json::to_value(AppError::pdf_save(code)).unwrap();
+            assert_eq!(json["kind"], "pdfSave");
+            assert_eq!(json["code"], expected);
+            assert_eq!(json["message"], code.message());
+        }
+    }
+
+    #[test]
+    fn validity_invalid_serializes_like_the_contract() {
+        let json =
+            serde_json::to_value(AppError::field("validityDays", ErrorCode::ValidityInvalid))
+                .unwrap();
+        assert_eq!(json["errors"][0]["field"], "validityDays");
+        assert_eq!(json["errors"][0]["code"], "VALIDITY_INVALID");
     }
 }

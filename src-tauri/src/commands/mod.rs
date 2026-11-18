@@ -4,6 +4,7 @@ pub mod dictation;
 pub mod draft;
 pub mod logo;
 pub mod profile;
+pub mod quote;
 pub mod rates;
 pub mod session;
 pub mod units;
