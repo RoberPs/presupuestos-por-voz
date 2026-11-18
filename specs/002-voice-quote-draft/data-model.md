@@ -9,6 +9,8 @@ Amplía la base de datos de la feature 001 con la migración 2. Importes en cén
 ```text
 dictations (0..2: ranuras current e incoming)
 
+visit_text_draft (0..1, id = 1)
+
 quote_draft (0..1, id = 1)
     ├──< draft_lines
     │       ├──> rates (opcional; SET NULL al borrar la tarifa)
@@ -24,7 +26,7 @@ quote_draft (0..1, id = 1)
 |---|---|---|
 | `slot` | TEXT PK | `current` (audio del borrador vigente) o `incoming` (audio nuevo aún sin borrador) |
 | `audio_file` | TEXT NOT NULL | Ruta relativa, p. ej. `recordings/dictation-<ms>.wav` |
-| `duration_ms` | INTEGER NOT NULL | 1–600 000 (FR-005, FR-002c) |
+| `duration_ms` | INTEGER NOT NULL | 1–600 000 (FR-005, FR-002c); la captura recorta al límite exacto y una grabación sin audio no crea fila |
 | `origin` | TEXT NOT NULL | `recorded` o `imported` |
 | `original_file_name` | TEXT NULL | Solo si es importado |
 | `status` | TEXT NOT NULL | `recorded`, `processing`, `transcribed`, `failed`, `no_speech` |
@@ -45,6 +47,17 @@ quote_draft (0..1, id = 1)
 ```
 
 Al arrancar, una fila en `processing` vuelve a `recorded`, porque el proceso se interrumpió.
+
+---
+
+## VisitTextDraft — tabla `visit_text_draft`
+
+Fila única (`CHECK (id = 1)`) con el texto escrito que aún no tiene borrador (FR-035). Se borra al generar el borrador.
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| `id` | INTEGER PK | Siempre 1 |
+| `text` | TEXT NOT NULL | Hasta 20 000 caracteres |
 
 ---
 
@@ -160,7 +173,7 @@ Clave primaria: `(line_id, rate_id)`. El precio de la sugerencia se lee de la ta
 
 | Versión | Contenido |
 |---|---|
-| 2 | Creación de `dictations`, `quote_draft`, `draft_lines`, `draft_line_suggestions` y `draft_unparsed_fragments` |
+| 2 | Creación de `dictations`, `visit_text_draft`, `quote_draft`, `draft_lines`, `draft_line_suggestions` y `draft_unparsed_fragments` |
 
 ## Ficheros en disco
 

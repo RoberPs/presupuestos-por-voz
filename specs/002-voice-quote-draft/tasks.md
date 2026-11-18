@@ -84,9 +84,9 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 - [ ] T023 [P] [US1] Crear `src-tauri/tests/draft_parser.rs` con la tabla de patrones de research.md (R6): el ejemplo de la spec da dos trabajos; varios trabajos mezclados conservan el orden y un concepto repetido da dos líneas; "unos cuantos metros" es ambiguo; "3 metros, no, mejor 4" es rectificación; lo no interpretable queda como fragmento (FR-015, FR-020, FR-022).
 - [ ] T024 [P] [US1] Crear `src-tauri/tests/draft_matcher.rs` con cada fila de research.md (R7): coincidencia con singular y plural, varias tarifas, desempate por unidad, unidad distinta sin convertir, parecidos sin precio, hasta 5 sugerencias en orden estable, sin tarifas y el caso "Mano de obra" / "Mano de obra urgente" (FR-017 a FR-021, FR-023).
 - [ ] T025 [P] [US1] Crear `src-tauri/tests/draft_builder.rs`: el borrador del ejemplo coincide con la spec; 100 repeticiones dan un resultado idéntico (FR-014); ninguna línea tiene un precio distinto al de su tarifa (SC-004); con 500 tarifas tarda menos de 100 ms.
-- [ ] T026 [P] [US1] Crear `src-tauri/tests/audio_pipeline.rs`: la reparación de un `.wav.part` truncado conserva las muestras; el silencio se detecta; WAV, MP3 y M4A de `src-tauri/tests/fixtures/audio/` se decodifican a 16 kHz mono; un texto renombrado a `.mp3` da `AUDIO_UNSUPPORTED_FORMAT`; un archivo truncado da `AUDIO_CORRUPT`; más de 10 minutos da `AUDIO_TOO_LONG`.
-- [ ] T027 [P] [US1] Crear `src-tauri/tests/dictation_service.rs` con un transcriptor simulado, que cubra los caminos de fallo del Principio III: éxito; sin voz; modelo no disponible; fallo y reintento; cancelación; y que en todos los fallos se conservan el audio y el borrador anterior (FR-004, FR-006, FR-009, SC-008). Incluir la recuperación de una grabación interrumpida.
-- [ ] T028 [P] [US1] Crear `src/features/voice-draft/DictationPanel.test.tsx` con `mockIPC`: grabar y parar con el botón y con F9, tiempo visible, aviso del límite, progreso y cancelación, errores de micrófono con las alternativas y confirmación antes de sustituir un borrador.
+- [ ] T026 [P] [US1] Crear `src-tauri/tests/audio_pipeline.rs`: la reparación de un `.wav.part` truncado conserva las muestras; el silencio se detecta; WAV, MP3 y M4A de `src-tauri/tests/fixtures/audio/` se decodifican a 16 kHz mono; un texto renombrado a `.mp3` da `AUDIO_UNSUPPORTED_FORMAT`; un archivo truncado da `AUDIO_CORRUPT`; más de 10 minutos da `AUDIO_TOO_LONG`; una grabación que se pasa del límite se recorta a 600 000 ms; parar sin audio no crea la ranura `incoming`.
+- [ ] T027 [P] [US1] Crear `src-tauri/tests/dictation_service.rs` con un transcriptor simulado, que cubra los caminos de fallo del Principio III: éxito; sin voz; modelo no disponible; fallo y reintento; cancelación; y que en todos los fallos se conservan el audio y el borrador anterior (FR-004, FR-006, FR-009, SC-008). Incluir la recuperación de una grabación interrumpida; que un audio rechazado al importar no modifica el borrador en curso (FR-002c); y que grabar o importar con una ranura `incoming` o una grabación recuperable exige confirmación (`replacePendingAudio`).
+- [ ] T028 [P] [US1] Crear `src/features/voice-draft/DictationPanel.test.tsx` con `mockIPC`: grabar y parar con el botón y con F9, tiempo visible, aviso del límite, progreso y cancelación, errores de micrófono con las alternativas, confirmación antes de sustituir un borrador, aviso de calidad baja (FR-007) y que al volver a la pantalla se sigue viendo la grabación y se puede parar.
 - [ ] T029 [P] [US1] Crear `src/features/voice-draft/DraftLinesTable.test.tsx`: líneas completas, "precio pendiente", "cantidad pendiente" con su fragmento, sugerencias, fragmentos sin interpretar, total provisional y acceso a crear tarifas.
 
 ### Implementación de User Story 1
@@ -101,19 +101,19 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 - [ ] T037 [P] [US1] Implementar `src-tauri/src/audio/resample.rs` con `rubato`, a 16 kHz y mono.
 - [ ] T038 [P] [US1] Implementar `src-tauri/src/audio/quality.rs`: detección de silencio y criterio de calidad baja (research.md, R10).
 - [ ] T039 [US1] Implementar `src-tauri/src/audio/decode.rs` con `symphonia`, con decodificación en flujo y corte a los 10 minutos (FR-002b, FR-002c).
-- [ ] T040 [US1] Implementar `src-tauri/src/audio/capture.rs`: hilo propio con `cpal`, eventos de nivel y tiempo, aviso a los 9 minutos, parada a los 10, desconexión y errores `MIC_*` (FR-001, FR-005, FR-008; research.md, R3).
-- [ ] T041 [US1] Implementar `src-tauri/src/transcription/whisper.rs`: carga bajo demanda, idioma `es`, progreso, cancelación, vocabulario de tarifas y descarte de segmentos sin voz (research.md, R1, R10 y R11).
-- [ ] T042 [US1] Implementar `src-tauri/src/services/dictation_service.rs`: iniciar, parar, importar, procesar, reintentar, cancelar, recuperar y descartar, sin mantener bloqueada la conexión SQLite durante la transcripción (FR-004, FR-009, FR-010, FR-035).
-- [ ] T043 [US1] Implementar `src-tauri/src/services/draft_service.rs` con la generación del borrador y su vista completa, incluidos totales y `vatChange`, y declarar ambos servicios en `src-tauri/src/services/mod.rs`.
-- [ ] T044 [US1] Crear `src-tauri/src/commands/session.rs` (`session_get`) y `src-tauri/src/commands/dictation.rs` con los comandos de dictado del contrato; declararlos en `src-tauri/src/commands/mod.rs` y registrarlos en `src-tauri/src/lib.rs`.
-- [ ] T045 [US1] Crear `src/features/voice-draft/useDraftSession.ts` con la carga de la sesión, los canales de eventos y las acciones de dictado.
+- [ ] T040 [US1] Implementar `src-tauri/src/audio/capture.rs`: hilo propio con `cpal`, eventos de nivel y tiempo, aviso a los 9 minutos, parada y recorte exacto a los 10, desconexión y errores `MIC_*` (FR-001, FR-005, FR-008; research.md, R3).
+- [ ] T041 [US1] Implementar `src-tauri/src/transcription/whisper.rs`: carga bajo demanda, idioma `es`, progreso, cancelación, vocabulario de tarifas y descarte de segmentos sin voz (research.md, R1, R10 y R11). Resolver la ruta del modelo con `BaseDirectory::Resource` en `src-tauri/src/lib.rs` y comprobar que existe antes de transcribir, devolviendo `MODEL_UNAVAILABLE` sin perder el audio.
+- [ ] T042 [US1] Implementar `src-tauri/src/services/draft_service.rs` con la generación del borrador y su vista completa, incluidos totales y `vatChange`, y declararlo en `src-tauri/src/services/mod.rs`.
+- [ ] T043 [US1] Implementar `src-tauri/src/services/dictation_service.rs`: iniciar, parar, importar, procesar, reintentar, cancelar, recuperar, descartar y reconectar eventos, con el estado `activity` de la sesión y sin mantener bloqueada la conexión SQLite durante la transcripción (FR-004, FR-009, FR-010, FR-035), y declararlo en `src-tauri/src/services/mod.rs`.
+- [ ] T044 [US1] Crear `src-tauri/src/commands/session.rs` (`session_get`) y `src-tauri/src/commands/dictation.rs` con los comandos de dictado del contrato, incluido `dictation_subscribe`; declararlos en `src-tauri/src/commands/mod.rs` y registrarlos en `src-tauri/src/lib.rs`.
+- [ ] T045 [US1] Crear `src/features/voice-draft/useDraftSession.ts` con la carga de la sesión, los canales de eventos y las acciones de dictado, llamando a `dictation_subscribe` al montar la pantalla si `activity` no es `idle`.
 - [ ] T046 [US1] Crear `src/features/voice-draft/DictationPanel.tsx`: botón de al menos 96 px, tecla F9, importar, tiempo, nivel, progreso, cancelar, reintentar, recuperar y mensajes de error (FR-001, FR-002, FR-006 a FR-009, R12).
 - [ ] T047 [P] [US1] Crear `src/features/voice-draft/DraftLineRow.tsx` en modo lectura, con las marcas de pendiente, el fragmento dictado y las sugerencias.
 - [ ] T048 [US1] Crear `src/features/voice-draft/DraftLinesTable.tsx`, con los fragmentos sin interpretar y el acceso a crear tarifas (FR-022, FR-023).
 - [ ] T049 [P] [US1] Crear `src/features/voice-draft/DraftTotals.tsx` con base, IVA, total y aviso de total provisional (FR-029, FR-031).
 - [ ] T050 [US1] Completar `src/features/voice-draft/DraftPage.tsx`, con el texto transcrito visible junto al borrador (FR-010).
 
-**Checkpoint**: el escenario 1 de quickstart.md y los escenarios 7–10 y 12–16 funcionan.
+**Checkpoint**: los escenarios 1, 7–10, 12 y 14–16 de quickstart.md funcionan. El 13 funciona salvo la opción de escribir a mano, que llega con US5.
 
 ---
 
@@ -125,7 +125,7 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 
 ### Pruebas de User Story 2 (escribir primero y comprobar que fallan) ⚠️
 
-- [ ] T051 [P] [US2] Crear `src-tauri/tests/draft_editing.rs` con cada fila de "Reglas de edición" de data-model.md: cantidad, concepto, precio → manual, unidad → pendiente, asignar tarifa, añadir desde tarifa y a mano, borrar y validaciones (FR-024 a FR-027, FR-032).
+- [ ] T051 [P] [US2] Crear `src-tauri/tests/draft_editing.rs` con cada fila de "Reglas de edición" de data-model.md: cantidad, concepto, precio → manual, unidad → pendiente, asignar tarifa, añadir desde tarifa y a mano, borrar y validaciones (FR-024 a FR-027, FR-032). Escribir un precio en una línea sin unidad devuelve `UNIT_REQUIRED`. Con 100 líneas, cada edición devuelve la vista actualizada en menos de 100 ms (SC-005).
 - [ ] T052 [P] [US2] Crear `src-tauri/tests/draft_lifecycle.rs`: una tarifa modificada o borrada no cambia la línea (FR-033); dar por bueno falla con pendientes o sin líneas; editar un borrador revisado lo devuelve a borrador (FR-034); el cambio de IVA conserva el total hasta aceptarlo (FR-029b); el borrador se conserva al reabrir la base de datos (FR-035); descartar borra el borrador y su audio (FR-036).
 - [ ] T053 [P] [US2] Crear `src/features/voice-draft/DraftEditing.test.tsx` con `mockIPC`: editar una cantidad actualiza los importes mostrados, errores junto al campo, añadir, borrar con confirmación, elegir una sugerencia, dar por bueno y aviso de IVA.
 
@@ -135,7 +135,7 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 - [ ] T055 [US2] Añadir a `src-tauri/src/services/draft_service.rs` `mark_reviewed`, `apply_current_vat` y `discard`.
 - [ ] T056 [US2] Crear `src-tauri/src/commands/draft.rs` con `draft_line_add`, `draft_line_update`, `draft_line_assign_rate`, `draft_line_delete`, `draft_apply_current_vat`, `draft_mark_reviewed` y `draft_discard`; declararlo en `src-tauri/src/commands/mod.rs` y registrarlos en `src-tauri/src/lib.rs`.
 - [ ] T057 [US2] Añadir a `src/features/voice-draft/useDraftSession.ts` las acciones de edición, aplicando siempre la `DraftView` que devuelve el núcleo, sin calcular dinero en la interfaz.
-- [ ] T058 [US2] Hacer editable `src/features/voice-draft/DraftLineRow.tsx`: concepto, cantidad, unidad y precio, con errores junto al campo, elección de sugerencia y borrado con `ConfirmDialog`.
+- [ ] T058 [US2] Hacer editable `src/features/voice-draft/DraftLineRow.tsx`: concepto, cantidad, unidad y precio, con errores junto al campo, tarifa de origen visible (FR-024b), elección de sugerencia y borrado con `ConfirmDialog`.
 - [ ] T059 [P] [US2] Crear `src/features/voice-draft/AddLineDialog.tsx`, para añadir una línea desde una tarifa o a mano (FR-025).
 - [ ] T060 [US2] Añadir a `src/features/voice-draft/DraftPage.tsx` "Dar por bueno", el señalado de las líneas pendientes, el estado revisado, el aviso de IVA y "Nuevo presupuesto" con confirmación (FR-029b, FR-034, FR-036).
 
@@ -156,9 +156,9 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 
 ### Implementación de User Story 3
 
-- [ ] T063 [US3] Resolver la ruta del modelo con `BaseDirectory::Resource` en `src-tauri/src/lib.rs` y comprobar su existencia antes de transcribir, devolviendo `MODEL_UNAVAILABLE` con un mensaje claro y sin perder el audio.
+- [ ] T063 [US3] Añadir a `src-tauri/tests/dictation_service.rs` que, tras fallar por falta de modelo, el reintento termina bien al restaurarlo (Principio III).
 - [ ] T064 [US3] Mostrar en `src/features/voice-draft/DictationPanel.tsx` el aviso de `transcribedLocally` (FR-039).
-- [ ] T065 [US3] Ejecutar con la red desactivada los escenarios 4 y 15 de `specs/002-voice-quote-draft/quickstart.md` en una versión instalada con `npm run tauri build`, y anotar el resultado en ese archivo.
+- [ ] T065 [US3] Ejecutar con la red desactivada los escenarios 1–3, 5, 6, 9–12, 15 y 17 de `specs/002-voice-quote-draft/quickstart.md` en una versión instalada con `npm run tauri build`, y anotar el resultado en ese archivo (SC-006).
 
 **Checkpoint**: el flujo completo funciona sin red en la app instalada.
 
@@ -172,12 +172,12 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 
 ### Pruebas de User Story 4 (escribir primero y comprobar que fallan) ⚠️
 
-- [ ] T066 [P] [US4] Crear `src-tauri/tests/draft_regenerate.rs`: regenerar aplica el texto nuevo; con cambios manuales y sin confirmar devuelve `confirmationRequired` y no cambia nada; al confirmar, sustituye las líneas; el texto guardado sobrevive al reabrir; regenerar un borrador revisado lo devuelve a borrador; se usa el precio vigente de las tarifas (FR-011, FR-012, FR-035).
-- [ ] T067 [P] [US4] Crear `src/features/voice-draft/VisitTextEditor.test.tsx` con `mockIPC`: editar guarda con *debounce*, regenerar, aviso de cambios manuales y aviso de calidad baja (FR-007).
+- [ ] T066 [P] [US4] Crear `src-tauri/tests/draft_regenerate.rs`: regenerar aplica el texto nuevo; con cambios manuales y sin confirmar devuelve `confirmationRequired` y no cambia nada; al confirmar, sustituye las líneas; el texto guardado sobrevive al reabrir; regenerar un borrador revisado lo devuelve a borrador; se usan el precio vigente de las tarifas y el IVA general vigente (FR-029); el texto escrito sin borrador sobrevive al reabrir (FR-011, FR-012, FR-035).
+- [ ] T067 [P] [US4] Crear `src/features/voice-draft/VisitTextEditor.test.tsx` con `mockIPC`: editar guarda con *debounce*, regenerar y aviso de cambios manuales.
 
 ### Implementación de User Story 4
 
-- [ ] T068 [US4] Añadir a `src-tauri/src/services/draft_service.rs` `regenerate` y `save_text`.
+- [ ] T068 [US4] Añadir a `src-tauri/src/services/draft_service.rs` `regenerate` y `save_text`, que guarda en `visit_text_draft` si aún no hay borrador.
 - [ ] T069 [US4] Añadir `draft_generate_from_text` (modo `regenerate`) y `draft_text_save` a `src-tauri/src/commands/draft.rs` y registrarlos en `src-tauri/src/lib.rs`.
 - [ ] T070 [US4] Crear `src/features/voice-draft/VisitTextEditor.tsx`, con guardado cada 500 ms, botón de regenerar y `ConfirmDialog`.
 - [ ] T071 [US4] Sustituir en `src/features/voice-draft/DraftPage.tsx` el texto de solo lectura por `VisitTextEditor`.
@@ -203,7 +203,7 @@ description: "Lista de tareas para implementar el borrador de presupuesto por vo
 - [ ] T075 [US5] Añadir a `src-tauri/src/services/draft_service.rs` y a `src-tauri/src/commands/draft.rs` el modo `new` de `draft_generate_from_text`.
 - [ ] T076 [US5] Añadir a `src/features/voice-draft/VisitTextEditor.tsx` el modo "Escribir la visita" con el botón de generar, y enlazarlo desde las alternativas de `src/features/voice-draft/DictationPanel.tsx` (FR-008, FR-013).
 
-**Checkpoint**: el escenario 6 de quickstart.md y la prueba e2e pasan.
+**Checkpoint**: los escenarios 6 y 13 de quickstart.md y la prueba e2e pasan.
 
 ---
 

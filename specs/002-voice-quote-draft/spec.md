@@ -112,7 +112,7 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 - **Micrófono desconectado mientras se graba**: la grabación se detiene, se conserva lo grabado y la app ofrece procesarlo.
 - **Sin tarifas creadas**: el borrador se genera con todas las líneas como "precio pendiente" y la app ofrece un acceso directo a crear tarifas.
 - **Tarifa modificada o borrada después de generar el borrador**: las líneas conservan el precio que tenían; solo cambia si el profesional regenera el borrador o reasigna la tarifa.
-- **IVA del negocio modificado después de generar el borrador**: el borrador conserva el tipo que tenía, avisa del cambio y ofrece actualizarlo.
+- **IVA del negocio modificado después de generar el borrador**: el borrador conserva el tipo que tenía, avisa del cambio y ofrece actualizarlo. Si se regenera, aplica el tipo vigente.
 - **Cierre inesperado de la app durante el dictado o la edición**: al volver a abrirla se recuperan el audio ya grabado y el borrador en curso.
 
 ## Requirements *(mandatory)*
@@ -157,14 +157,15 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 **Edición del borrador**
 
 - **FR-024**: El profesional MUST poder editar el concepto, la cantidad, la unidad y el precio de cualquier línea.
+- **FR-024b**: Cambiar a mano la unidad de una línea con precio de tarifa MUST dejarla como "precio pendiente" y sugerir esa tarifa. Cambiar el concepto MUST conservar el precio y su origen, y la línea MUST mostrar la tarifa de la que procede.
 - **FR-025**: El profesional MUST poder añadir líneas eligiendo una tarifa o escribiéndolas a mano, y MUST poder borrar líneas previa confirmación.
-- **FR-026**: El profesional MUST poder completar una línea pendiente asignándole una tarifa o escribiendo un precio.
+- **FR-026**: El profesional MUST poder completar una línea pendiente asignándole una tarifa o escribiendo un precio. Si la línea no tiene unidad, el sistema MUST pedirla antes de aceptar el precio.
 - **FR-027**: El sistema MUST rechazar cantidades y precios que no sean mayores que cero o que tengan más de dos decimales, indicando el motivo.
 
 **Cálculo**
 
 - **FR-028**: El importe de cada línea MUST ser la cantidad por el precio, redondeado al céntimo.
-- **FR-029**: El sistema MUST mostrar la base (suma de importes sin IVA), el IVA según el tipo aplicado al borrador y el total con IVA. El tipo aplicado MUST ser el general del negocio en el momento de generar el borrador.
+- **FR-029**: El sistema MUST mostrar la base (suma de importes sin IVA), el IVA según el tipo aplicado al borrador y el total con IVA. El tipo aplicado MUST ser el general del negocio en el momento de generar el borrador. Regenerar el borrador MUST aplicar el IVA general vigente en ese momento.
 - **FR-029b**: Si el tipo de IVA general del negocio cambia después de generar el borrador, el sistema MUST conservar el tipo aplicado, avisar del cambio y ofrecer actualizarlo; el total MUST NOT cambiar hasta que el profesional lo acepte.
 - **FR-030**: Cualquier cambio en una línea MUST actualizar al momento su importe, la base, el IVA y el total.
 - **FR-031**: Las líneas pendientes MUST quedar fuera de la base y del total; mientras existan, el sistema MUST indicar que el total es provisional y cuántas líneas faltan por completar.
@@ -227,3 +228,6 @@ Si no puede dictar (micrófono averiado, lugar inadecuado, notas ya tomadas), el
 - Q: ¿Debe la app generar el borrador en cuanto termina la transcripción, o esperar a que el profesional revise antes el texto? → A: Lo genera automáticamente y muestra el texto junto a él para corregirlo y regenerar.
 - Q: ¿Qué debe hacer la app con una línea en la que el profesional se rectifica al dictar, como "3 metros, no, mejor 4"? → A: La deja como "cantidad pendiente", muestra el fragmento dictado y el profesional escribe la cantidad correcta.
 - Q: Si el profesional cambia el tipo de IVA de su negocio cuando ya tiene un borrador en curso, ¿qué IVA debe aplicar ese borrador? → A: Conserva el IVA que tenía al generarse, avisa de que el del negocio ha cambiado y ofrece actualizarlo.
+- Q: ¿Qué IVA aplica el borrador al regenerarlo? → A: El IVA general vigente en ese momento.
+- Q: ¿Qué ocurre al editar a mano la unidad o el concepto de una línea con precio de tarifa? → A: Cambiar la unidad deja la línea como "precio pendiente" y sugiere esa tarifa; cambiar el concepto conserva el precio y su origen, y la línea muestra la tarifa de la que procede.
+- Q: ¿Qué ocurre al escribir el precio de una línea que no tiene unidad? → A: La app pide la unidad antes de aceptar el precio.

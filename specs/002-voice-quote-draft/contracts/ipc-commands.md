@@ -12,7 +12,7 @@ type AppError =
   | { kind: "microphone"; code: "MIC_NOT_FOUND" | "MIC_ACCESS_DENIED" | "MIC_UNAVAILABLE"; message: string }
   | { kind: "audioRejected"; code: "AUDIO_UNSUPPORTED_FORMAT" | "AUDIO_CORRUPT" | "AUDIO_TOO_LONG"; message: string }
   | { kind: "transcription"; code: "MODEL_UNAVAILABLE" | "TRANSCRIPTION_FAILED"; message: string }
-  | { kind: "confirmationRequired"; reason: "replaceDraft" | "discardManualChanges"; message: string }
+  | { kind: "confirmationRequired"; reason: "replaceDraft" | "replacePendingAudio" | "discardManualChanges"; message: string }
   | { kind: "invalidState"; message: string }
   | { kind: "draftHasPending"; pendingLineIds: number[]; message: string };
 
@@ -26,8 +26,13 @@ type ErrorCode =
 
 ```ts
 type SessionView = {
+  activity:
+    | { kind: "idle" }
+    | { kind: "recording"; elapsedMs: number }
+    | { kind: "processing"; percent: number | null };
   dictation: DictationView | null;   // la ranura incoming si existe; si no, current
   draft: DraftView | null;
+  pendingText: string | null;        // texto escrito que aún no tiene borrador (FR-035)
   recovery: { durationMs: number } | null;   // grabación interrumpida que se puede recuperar
 };
 
@@ -100,15 +105,15 @@ type RecordingEvent =
   | { type: "stopped"; reason: "limitReached" | "deviceLost"; durationMs: number };
 ```
 
-Errores: `microphone`; `confirmationRequired` (`replaceDraft`) si ya hay borrador y `confirmReplace` es `false`; `invalidState` si ya se está grabando o procesando.
+Errores: `microphone`; `confirmationRequired` si `confirmReplace` es `false` y ya hay borrador (`replaceDraft`) o hay una ranura `incoming` o una grabación recuperable (`replacePendingAudio`); `invalidState` si ya se está grabando o procesando.
 
 ### `dictation_stop()` → `SessionView`
 
-Cierra la grabación y crea la ranura `incoming` en estado `recorded`. La interfaz llama después a `dictation_process`.
+Cierra la grabación y crea la ranura `incoming` en estado `recorded`. La interfaz llama después a `dictation_process`. Si no se ha grabado audio, descarta el archivo, no crea la ranura `incoming` y la interfaz muestra el aviso de FR-006.
 
 ### `dictation_import(args: { confirmReplace: boolean })` → `SessionView | null`
 
-Abre el diálogo nativo (M4A, MP3, WAV). Devuelve `null` si el usuario cancela. Valida y normaliza el archivo antes de crear la ranura `incoming`. Si lo rechaza, el error es `audioRejected` y el borrador en curso queda intacto (FR-002c).
+Abre el diálogo nativo (M4A, MP3, WAV). Devuelve `null` si el usuario cancela. Valida y normaliza el archivo antes de crear la ranura `incoming`. Si lo rechaza, el error es `audioRejected` y el borrador en curso queda intacto (FR-002c). Exige la misma confirmación que `dictation_start` (`replaceDraft` o `replacePendingAudio`).
 
 ### `dictation_process(args: { onProgress: Channel<ProcessingEvent> })` → `ProcessResult`
 
@@ -117,7 +122,8 @@ Transcribe la ranura `incoming` y, si hay texto, genera el borrador en una únic
 ```ts
 type ProcessingEvent =
   | { type: "stage"; stage: "preparing" | "transcribing" | "buildingDraft" }
-  | { type: "progress"; percent: number };
+  | { type: "progress"; percent: number }
+  | { type: "finished"; outcome: "draftReady" | "noSpeech" | "cancelled" | "failed" };
 
 type ProcessResult = { outcome: "draftReady" | "noSpeech" | "cancelled"; session: SessionView };
 ```
@@ -127,6 +133,10 @@ Errores: `transcription` (el audio se conserva y el estado pasa a `failed`); `in
 ### `dictation_cancel_processing()` → `void`
 
 Pide cancelar el proceso en curso. `dictation_process` termina con `cancelled` y el audio se conserva (FR-009).
+
+### `dictation_subscribe(args: { onRecording: Channel<RecordingEvent>; onProgress: Channel<ProcessingEvent> })` → `void`
+
+Reconecta los eventos de la grabación o del proceso en curso al volver a la pantalla. La interfaz lo llama al montarse si `activity` no es `idle`. Sustituye a los canales anteriores.
 
 ### `dictation_recover()` → `SessionView`
 
@@ -148,7 +158,7 @@ El resultado depende solo del texto, las tarifas y las unidades (FR-014).
 
 ### `draft_text_save(args: { text: string })` → `void`
 
-Guarda el texto mientras se edita, sin regenerar (FR-035). La interfaz lo llama con *debounce* de 500 ms.
+Guarda el texto mientras se edita, sin regenerar (FR-035). La interfaz lo llama con *debounce* de 500 ms. Si aún no hay borrador, lo guarda como `pendingText`, que se vacía al generar el borrador.
 
 ### `draft_line_add(input: DraftLineInput)` → `DraftView`
 
