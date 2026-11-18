@@ -1,8 +1,10 @@
 // Pruebas extremo a extremo con WebdriverIO + tauri-driver (R10).
-// Requisitos: `cargo install tauri-driver` y msedgedriver (misma versión que WebView2) en el PATH.
+// Requisitos: `cargo install tauri-driver` y msedgedriver (misma versión que WebView2), en el PATH
+// o indicado con la variable MSEDGEDRIVER_PATH.
 // `npm run test:e2e` compila la app en modo debug y ejecuta los recorridos de quickstart.md.
 import { spawn, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,6 +18,24 @@ const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "presupuestos-e2e-"));
 process.env.PRESUPUESTOS_DATA_DIR = dataDir;
 
 let tauriDriver: ChildProcess | undefined;
+
+/** Espera a que tauri-driver acepte conexiones antes de pedir la sesión. */
+async function waitForPort(port: number, timeoutMs: number) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const open = await new Promise<boolean>((resolve) => {
+      const socket = net.connect(port, "127.0.0.1");
+      socket.once("connect", () => {
+        socket.destroy();
+        resolve(true);
+      });
+      socket.once("error", () => resolve(false));
+    });
+    if (open) return;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error(`tauri-driver no responde en el puerto ${port}`);
+}
 
 export const config: WebdriverIO.Config = {
   runner: "local",
@@ -41,12 +61,17 @@ export const config: WebdriverIO.Config = {
       );
     }
   },
-  beforeSession: () => {
-    const driver = path.resolve(os.homedir(), ".cargo", "bin", "tauri-driver");
-    tauriDriver = spawn(driver, [], {
+  beforeSession: async () => {
+    const bin = process.platform === "win32" ? "tauri-driver.exe" : "tauri-driver";
+    const driver = path.resolve(os.homedir(), ".cargo", "bin", bin);
+    // MSEDGEDRIVER_PATH: ruta a msedgedriver.exe si no está en el PATH.
+    const nativeDriver = process.env.MSEDGEDRIVER_PATH;
+    const args = nativeDriver ? ["--native-driver", nativeDriver] : [];
+    tauriDriver = spawn(driver, args, {
       stdio: [null, process.stdout, process.stderr],
       env: { ...process.env, PRESUPUESTOS_DATA_DIR: dataDir },
     });
+    await waitForPort(4444, 15_000);
   },
   afterSession: () => {
     tauriDriver?.kill();

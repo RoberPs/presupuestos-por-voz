@@ -274,12 +274,12 @@ description: "Lista de tareas para implementar Perfil del negocio y tarifas"
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [X] T056 [P] Crear `src-tauri/examples/seed_rates.rs`: abre la base de datos en el `app_data_dir` real (identificador de T001) e inserta N tarifas sintéticas ("Tubo cobre 15 mm 1"…) con unidades variadas. Conectar el script `seed:rates` de `package.json` a `cargo run --example seed_rates --manifest-path src-tauri/Cargo.toml --`.
-- [ ] T057 [P] Configurar e2e en `e2e/wdio.conf.ts` (WebdriverIO + `tauri-driver` con el binario de `tauri build --debug`, carpeta de datos temporal mediante una variable de entorno que `lib.rs` respete solo en builds debug). Crear `e2e/specs/business-profile.e2e.ts` (escenarios 1–3 y 10) y `e2e/specs/rates.e2e.ts` (escenarios 11, 12, 17, 18 y 19).
+- [X] T057 [P] Configurar e2e en `e2e/wdio.conf.ts` (WebdriverIO + `tauri-driver` con el binario de `tauri build --debug`, carpeta de datos temporal mediante una variable de entorno que `lib.rs` respete solo en builds debug). Crear `e2e/specs/business-profile.e2e.ts` (escenarios 1–3 y 10) y `e2e/specs/rates.e2e.ts` (escenarios 11, 12, 17, 18 y 19).
 - [X] T058 [P] Revisar la accesibilidad en `src/shared/components/` y en las páginas: todos los inputs con `label`, errores con `aria-live`, orden de tabulación lógico, `Esc` cierra los diálogos, foco devuelto al disparador y contraste AA comprobado.
 - [X] T059 [P] Crear `README.md` en la raíz: qué es la app, requisitos (Node 20+, Rust estable, VS Build Tools, WebView2), arranque (`npm install`, `npm run tauri dev`), pruebas y dónde se guardan los datos.
-- [ ] T060 Comprobar que no hay red (Principios I y II): revisar que `src-tauri/Cargo.toml` y `package.json` no incluyen clientes HTTP ni telemetría, que la CSP y `capabilities/default.json` coinciden con T007, y lanzar la app con la red desactivada.
-- [ ] T061 Pasar todas las comprobaciones de calidad y corregir lo que falle: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` y `cargo test --release --test rate_search`, `npm run lint`, `npm run typecheck`, `npm run test` y `npm run test:e2e`.
-- [ ] T062 Ejecutar los escenarios manuales 1–21 y la comprobación de robustez de [quickstart.md](quickstart.md) con la red desactivada. Registrar el resultado (OK o fallo, con nota) en `specs/001-business-profile-rates/checklists/quickstart-results.md`.
+- [X] T060 Comprobar que no hay red (Principios I y II): revisar que `src-tauri/Cargo.toml` y `package.json` no incluyen clientes HTTP ni telemetría, que la CSP y `capabilities/default.json` coinciden con T007, y lanzar la app con la red desactivada.
+- [X] T061 Pasar todas las comprobaciones de calidad y corregir lo que falle: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` y `cargo test --release --test rate_search`, `npm run lint`, `npm run typecheck`, `npm run test` y `npm run test:e2e`.
+- [X] T062 Ejecutar los escenarios manuales 1–21 y la comprobación de robustez de [quickstart.md](quickstart.md) con la red desactivada. Registrar el resultado (OK o fallo, con nota) en `specs/001-business-profile-rates/checklists/quickstart-results.md`.
 
 ---
 

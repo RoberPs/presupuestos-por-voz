@@ -1,6 +1,6 @@
 // Escenarios 11, 12, 17, 18 y 19 de quickstart.md.
 import { $, expect } from "@wdio/globals";
-import { button, click, fill, goTo, text } from "../helpers";
+import { button, click, clickInDialog, fill, goTo, text } from "../helpers";
 
 const row = (concept: string) => $(`//tr[td[normalize-space(.)="${concept}"]]`);
 
@@ -44,10 +44,10 @@ describe("Tarifas", () => {
   it("18 · borrar: cancelar la mantiene y confirmar la quita", async () => {
     await createRate("Alicatado", "m²", "20");
     await click("Borrar Alicatado");
-    await click("Cancelar");
+    await clickInDialog("Cancelar");
     await expect(await row("Alicatado")).toBeExisting();
     await click("Borrar Alicatado");
-    await click("Borrar");
+    await clickInDialog("Borrar");
     await expect(await row("Alicatado")).not.toBeExisting();
   });
 

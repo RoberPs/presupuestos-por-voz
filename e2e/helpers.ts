@@ -28,6 +28,13 @@ export async function click(name: string) {
   await b.click();
 }
 
+/** Pulsa un botón del diálogo abierto (la página de detrás puede tener otro con el mismo texto). */
+export async function clickInDialog(name: string) {
+  const b = await $(`//*[@role="dialog"]//button[normalize-space(.)="${name}"]`);
+  await b.waitForClickable();
+  await b.click();
+}
+
 export async function goTo(section: "Mi negocio" | "Tarifas") {
   const link = await $(`//nav//a[normalize-space(.)="${section}"]`);
   await link.click();
