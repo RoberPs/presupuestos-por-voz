@@ -124,5 +124,5 @@ Tras un error de guardado, el diálogo se reabre con la última carpeta y el úl
 - Ningún comando hace peticiones de red (FR-027 y FR-028).
 - Cancelar o fallar no crea archivos, no gasta números y no modifica el borrador (FR-024 y FR-025).
 - La interfaz no calcula importes, fechas ni números: los recibe del núcleo.
-- Los `message` están en español sencillo. El detalle técnico solo va al log local (FR-029).
+- Los `message` están en español sencillo. El detalle técnico solo va al log local (FR-029), sin datos del cliente ni contenido del presupuesto (FR-028b).
 - No se añaden plugins ni permisos: el diálogo se abre desde Rust y `capabilities/default.json` no cambia.

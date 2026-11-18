@@ -64,9 +64,8 @@ Comprobado sobre esos archivos con PyMuPDF y pypdf:
 
 ## R5. Caracteres que la tipografía no contiene
 
-- **Decisión (propuesta)**: si un texto contiene un carácter sin representación (p. ej. un emoji), la app **no genera el PDF** e indica el dato afectado y el carácter.
+- **Decisión**: si un texto contiene un carácter sin representación (p. ej. un emoji), la app **no genera el PDF** e indica el dato afectado y el carácter (FR-018b).
 - **Rationale**: FR-018 exige mostrar los textos completos. Sustituir el carácter por otro alteraría un documento comercial sin avisar.
-- **Pendiente**: la spec no recoge este caso. Conviene incorporarlo con `/speckit-clarify` antes de `/speckit-tasks`.
 
 ## R6. Logo
 

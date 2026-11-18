@@ -104,7 +104,8 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **Ubicación que desaparece al guardar** (p. ej. se retira la memoria USB): se trata igual que una ubicación sin permisos.
 - **Archivo con el mismo nombre ya existente**: solo se sustituye si el profesional lo confirma. Si la escritura falla, el archivo anterior queda intacto.
 - **Archivo existente abierto en otro programa**: la app avisa de que está en uso y permite cerrarlo y reintentar, o elegir otro nombre.
-- **IVA del negocio cambiado después de generar el borrador**: el PDF usa el tipo aplicado al borrador; la petición de confirmación avisa de la diferencia y ofrece actualizarlo antes de continuar.
+- **Carácter que el PDF no puede mostrar** (p. ej. un emoji en un concepto o en el nombre del cliente): la app no genera el PDF e indica qué dato y qué carácter hay que corregir.
+- **IVA del negocio cambiado después de generar el borrador**: el aviso de la confirmación no impide generar el PDF con el tipo aplicado al borrador. Si el profesional elige actualizarlo, los importes se recalculan y el borrador vuelve a requerir revisión antes de generar el PDF.
 - **Fragmentos del dictado sin interpretar**: no aparecen en el PDF; la petición de confirmación recuerda que existen para que el profesional decida si le falta alguna línea.
 - **Borrador editado después de generar un PDF**: el archivo ya generado no cambia. El borrador vuelve a requerir revisión y se puede generar otro PDF.
 - **Pulsación repetida del botón de generar**: se genera un único documento.
@@ -121,6 +122,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **FR-003**: El sistema MUST NOT generar el PDF si el perfil del negocio está incompleto, y MUST indicar qué datos obligatorios faltan y ofrecer un acceso directo a "Mi negocio".
 - **FR-004**: El sistema MUST pedir una confirmación explícita antes de crear el archivo, mostrando los datos del cliente, el número del presupuesto, las fechas, el número de líneas y el total, y permitiendo corregir los datos del cliente, el número y la validez. Ninguna acción automática MUST poder saltarse este paso (Principio V).
 - **FR-005**: La petición de confirmación MUST avisar, cuando corresponda, de que el documento saldrá sin logo, de que el tipo de IVA del negocio ha cambiado o de que hay fragmentos del dictado sin interpretar.
+- **FR-005b**: El aviso de cambio de IVA MUST NOT impedir generar el PDF con el tipo aplicado al borrador. Si el profesional actualiza el tipo, el sistema MUST recalcular los importes y devolver el borrador al estado de pendiente de revisión.
 
 **Contenido del documento**
 
@@ -144,6 +146,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - **FR-016**: El documento MUST tener tamaño A4 en vertical y un único diseño.
 - **FR-017**: Si las líneas no caben en una página, el documento MUST continuar en las siguientes, repitiendo la cabecera de la tabla, numerando las páginas y sin partir ninguna línea entre dos páginas.
 - **FR-018**: Los conceptos y los datos del negocio largos MUST mostrarse completos en varios renglones, sin recortarse ni solaparse con otros elementos.
+- **FR-018b**: Si un texto del documento contiene un carácter que el PDF no puede mostrar, el sistema MUST NOT generar el archivo y MUST indicar qué dato y qué carácter hay que corregir.
 - **FR-019**: Sin logo, el documento MUST reorganizar la cabecera sin dejar un hueco vacío.
 
 **Guardado del archivo**
@@ -160,6 +163,7 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 
 - **FR-027**: Todas las funciones de esta feature MUST funcionar sin conexión a Internet (Principio I).
 - **FR-028**: El documento y sus datos MUST permanecer en el equipo del usuario, sin enviarse a ningún servicio externo (Principio II).
+- **FR-028b**: Los registros técnicos locales de la app MUST NOT incluir los datos del cliente ni el contenido del presupuesto.
 - **FR-029**: Todos los mensajes, etiquetas y avisos de la app y todos los textos del documento MUST estar en español, en lenguaje sencillo y sin términos técnicos.
 
 ### Key Entities
@@ -203,3 +207,6 @@ El profesional genera el documento en cualquier lugar, tenga o no conexión a In
 - Q: ¿Qué datos del cliente aparecen en el PDF y cuáles son obligatorios? → A: Nombre obligatorio; dirección, teléfono, email y NIF opcionales.
 - Q: ¿El presupuesto lleva número y cómo se asigna? → A: Automático y correlativo por año (p. ej. 2026-001), editable antes de confirmar.
 - Q: ¿Qué fechas aparecen y cómo se fija la validez? → A: Fecha de emisión automática y validez de 30 días, editable en cada presupuesto.
+- Q: ¿Qué debe hacer la app si un dato del presupuesto lleva un carácter que el PDF no puede mostrar? → A: No generar el PDF e indicar qué dato y qué carácter hay que corregir.
+- Q: ¿El cambio del IVA del negocio impide generar el PDF? → A: No; se puede generar con el tipo aplicado al borrador. Si el profesional lo actualiza, el borrador vuelve a requerir revisión.
+- Q: ¿Pueden los registros técnicos locales contener datos del cliente o del presupuesto? → A: No; solo el detalle técnico necesario para diagnosticar fallos.

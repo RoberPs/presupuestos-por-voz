@@ -86,7 +86,7 @@ Número, fechas, datos del cliente, datos del negocio, huella del logo, líneas 
 | `profileIncomplete` | El perfil tiene datos obligatorios sin completar | FR-003 |
 | `clientNameRequired` | `client_name` está vacío | FR-012 |
 | `quoteNumberRequired` | El número está vacío | FR-001 |
-| `unsupportedCharacters` | Algún texto no se puede representar | [research.md](research.md), R5 |
+| `unsupportedCharacters` | Algún texto no se puede representar | FR-018b |
 | `logoUnreadable` | El logo no se puede leer y no se ha aceptado seguir sin él | Casos límite |
 
 ## Avisos en la confirmación
@@ -95,7 +95,7 @@ Número, fechas, datos del cliente, datos del negocio, huella del logo, líneas 
 |---|---|
 | `noLogo` | El negocio no tiene logo |
 | `logoUnreadable` | El logo guardado no se puede leer |
-| `vatChanged` | El IVA del negocio difiere del aplicado al borrador |
+| `vatChanged` | El IVA del negocio difiere del aplicado al borrador. No bloquea; actualizarlo con `draft_apply_current_vat` devuelve el borrador a `draft` (FR-005b) |
 | `unparsedFragments` | Hay fragmentos del dictado sin interpretar |
 
 ---
