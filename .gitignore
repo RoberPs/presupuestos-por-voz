@@ -1,0 +1,26 @@
+# Dependencias y builds
+node_modules/
+dist/
+build/
+coverage/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/resources/models/*.bin
+src-tauri/resources/models/*.part
+
+# Rust
+*.rs.bk
+*.pdb
+
+# Logs y entorno
+*.log
+.env*
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json

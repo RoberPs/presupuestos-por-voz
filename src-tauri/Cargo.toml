@@ -1,0 +1,61 @@
+[package]
+name = "presupuestos-por-voz"
+version = "0.1.0"
+description = "Presupuestos por Voz"
+edition = "2021"
+publish = false
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-log = "2"
+rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite_migration = "1.3"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+unicode-normalization = "0.1"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+log = "0.4"
+cpal = "0.18"
+symphonia = { version = "0.6", default-features = false, features = ["isomp4", "aac", "alac", "mp3", "wav", "pcm"] }
+rubato = "5"
+whisper-rs = { version = "0.16", optional = true }
+krilla = { version = "0.8.2", default-features = false, features = ["raster-images", "simple-text"] }
+rustybuzz = "0.20"
+time = { version = "0.3", features = ["local-offset"] }
+
+[features]
+default = ["local-transcription"]
+local-transcription = ["dep:whisper-rs"]
+
+[dev-dependencies]
+tempfile = "3"
+lopdf = "0.47"
+
+[[example]]
+name = "transcribe_benchmark"
+required-features = ["local-transcription"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
+
+# whisper.cpp debe compilarse optimizado para velocidad en todos los perfiles (SC-002).
+[profile.release.package.whisper-rs-sys]
+opt-level = 3
+
+[profile.dev.package.whisper-rs-sys]
+opt-level = 3

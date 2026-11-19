@@ -1,0 +1,16 @@
+.region {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  z-index: 200;
+}
+
+.toast {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 2px solid var(--color-success-text);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  box-shadow: var(--shadow-dialog);
+}
