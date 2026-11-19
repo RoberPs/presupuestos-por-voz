@@ -3,6 +3,11 @@ node_modules/
 dist/
 build/
 coverage/
+
+# Demo web
+demo/web/pkg/
+demo/core/target/
+dist-demo/
 src-tauri/target/
 src-tauri/gen/
 src-tauri/resources/models/*.bin

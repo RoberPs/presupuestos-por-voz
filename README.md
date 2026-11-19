@@ -7,6 +7,13 @@ y sus tarifas**.
 > **Estado:** versión 0.1.0 terminada y probada en uso real. Dictar o importar la visita, obtener un
 > borrador calculado con tus tarifas, revisarlo y emitir el presupuesto en PDF/A, todo sin conexión.
 
+## Probar la demo
+
+**[Abrir la demo web](https://roberps.github.io/presupuestos-por-voz/)**: la misma interfaz y el
+mismo núcleo Rust, compilado a WebAssembly, funcionando en el navegador sin servidor. Viene con un
+negocio y unas tarifas de ejemplo: escribe la visita, revisa el borrador y descarga el PDF. El
+dictado por voz solo está en la app de escritorio. Detalles en [demo/README.md](demo/README.md).
+
 ## Descargar
 
 Instalador para Windows 10/11 (64 bits) en la
@@ -129,4 +136,5 @@ specs/           # Especificaciones, planes y tareas por feature
 src/             # interfaz React + TypeScript, organizada por features
 src-tauri/       # núcleo Rust: dominio, servicios, almacenamiento y comandos IPC
 e2e/             # pruebas extremo a extremo (WebdriverIO + tauri-driver)
+demo/            # demo web: núcleo Rust en WebAssembly y entrada de la interfaz
 ```

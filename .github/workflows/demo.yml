@@ -1,0 +1,81 @@
+# Construye la demo web (núcleo Rust en WebAssembly + interfaz React) y la publica en GitHub Pages.
+name: Demo web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demo/**"
+      - "src/**"
+      - "src-tauri/src/domain/**"
+      - "src-tauri/src/pdf/**"
+      - "src-tauri/src/error.rs"
+      - "src-tauri/assets/fonts/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.demo.config.ts"
+      - "scripts/build-demo-wasm.mjs"
+      - ".github/workflows/demo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  # .cargo/config.toml fija una carpeta de Windows; en el runner se compila dentro del repositorio.
+  CARGO_TARGET_DIR: demo/core/target
+  WASM_BINDGEN_VERSION: 0.2.130
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: demo/core -> target
+          cache-bin: true
+
+      - name: Instalar wasm-bindgen-cli
+        run: |
+          if ! wasm-bindgen --version 2>/dev/null | grep -q "$WASM_BINDGEN_VERSION"; then
+            cargo install wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION" --locked
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Pruebas del núcleo de la demo (incluye las del dominio de la app)
+        run: cargo test --manifest-path demo/core/Cargo.toml
+
+      - name: Construir la demo
+        run: npm run demo:build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-demo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -39,6 +39,10 @@ time = { version = "0.3", features = ["local-offset"] }
 default = ["local-transcription"]
 local-transcription = ["dep:whisper-rs"]
 
+# `demo_web` solo lo activa la demo web (demo/core), que compila error.rs sin SQLite.
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(demo_web)"] }
+
 [dev-dependencies]
 tempfile = "3"
 lopdf = "0.47"

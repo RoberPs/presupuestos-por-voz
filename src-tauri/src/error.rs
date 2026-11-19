@@ -456,6 +456,8 @@ impl AppError {
     }
 }
 
+// La demo web (demo/core) compila este módulo sin SQLite y activa `demo_web` en su build.rs.
+#[cfg(not(demo_web))]
 impl From<rusqlite::Error> for AppError {
     fn from(e: rusqlite::Error) -> Self {
         log::error!("Error de base de datos: {e}");

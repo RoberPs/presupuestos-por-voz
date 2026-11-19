@@ -132,6 +132,9 @@ La shell principal es PowerShell 5.1: encadena comandos con `;` (no existe `&&`)
   se descargó una vez (T002 de la feature 003) y está en git; y el primer `npm run tauri build` descarga de
   GitHub las herramientas de empaquetado de Tauri (NSIS y `nsis_tauri_utils`) y comprueba su hash. La app
   nunca descarga nada.
+- **Demo web** (`demo/`, ver `demo/README.md`): compila `domain`, `pdf` y `error.rs` a WebAssembly con
+  `#[path]`, sin copiarlos. Si cambias esos módulos, comprueba también `cargo test --manifest-path demo/core/Cargo.toml`.
+  `error.rs` no puede depender de SQLite fuera de `#[cfg(not(demo_web))]`.
 - **Precios del borrador**: el intérprete de texto es determinista y solo copia precios de una tarifa. Cualquier
   duda deja la línea pendiente. Cantidades en **centésimas enteras** (1,5 → 150).
 - **Textos**: todos en español sencillo y sin jerga técnica, centralizados en `src/shared/i18n/es.ts`. Los errores de almacenamiento

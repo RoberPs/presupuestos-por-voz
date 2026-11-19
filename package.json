@@ -15,7 +15,11 @@
     "format": "prettier --write .",
     "test:e2e": "tauri build --debug --no-bundle && wdio run e2e/wdio.conf.ts",
     "seed:rates": "cargo run --example seed_rates --manifest-path src-tauri/Cargo.toml --",
-    "model:fetch": "node scripts/fetch-model.mjs"
+    "model:fetch": "node scripts/fetch-model.mjs",
+    "demo:wasm": "node scripts/build-demo-wasm.mjs",
+    "demo:dev": "vite --config vite.demo.config.ts",
+    "demo:build": "node scripts/build-demo-wasm.mjs && tsc --noEmit -p demo/web && vite build --config vite.demo.config.ts",
+    "demo:preview": "vite preview --config vite.demo.config.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",
