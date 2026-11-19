@@ -4,9 +4,15 @@ Aplicación de escritorio para profesionales de oficios (fontaneros, electricist
 convierte la visita al cliente, dictada por voz, en un presupuesto en PDF con **su logo, sus datos
 y sus tarifas**.
 
-> **Estado:** implementados el *Perfil del negocio y tarifas* y el *Borrador de presupuesto por
-> voz*: dictar o importar la visita, obtener un borrador calculado con tus tarifas y revisarlo. La
-> generación del PDF llegará en una feature posterior.
+> **Estado:** versión 0.1.0 terminada y probada en uso real. Dictar o importar la visita, obtener un
+> borrador calculado con tus tarifas, revisarlo y emitir el presupuesto en PDF/A, todo sin conexión.
+
+## Descargar
+
+Instalador para Windows 10/11 (64 bits) en la
+[release v0.1.0](https://github.com/RoberPs/presupuestos-por-voz/releases/tag/v0.1.0), con su huella
+SHA-256 y las instrucciones de instalación y uso. Incluye el modelo de voz, así que no necesita
+Internet. El instalador no está firmado: Windows SmartScreen pedirá confirmación la primera vez.
 
 ## Por qué
 
@@ -23,15 +29,19 @@ Estos principios están recogidos en la [constitución del proyecto](.specify/me
 | # | Feature | Estado |
 |---|---|---|
 | 001 | [Perfil del negocio y tarifas](specs/001-business-profile-rates/spec.md): datos fiscales, logo, IVA general, lista de tarifas con búsqueda | Implementada |
-| 002 | [Borrador de presupuesto por voz](specs/002-voice-quote-draft/spec.md): dictado, importación de audio, transcripción local y revisión del borrador | Implementada; falta la validación manual |
-| — | Generación del PDF y datos del cliente | Pendiente |
-| — | Exportación y copia de seguridad de los datos | Pendiente |
+| 002 | [Borrador de presupuesto por voz](specs/002-voice-quote-draft/spec.md): dictado, importación de audio, transcripción local y revisión del borrador | Implementada |
+| 003 | [PDF del presupuesto](specs/003-quote-pdf-export/spec.md): datos del cliente, numeración, bloqueos mientras falten precios, PDF/A-2b y guardado seguro | Implementada |
+
+Las tres features están validadas a mano, incluida una [prueba real](docs/prueba-real-movil.md) con
+el móvil como grabadora y como visor del PDF.
 
 ## Tecnología
 
 - [Tauri 2](https://tauri.app/): núcleo en **Rust** e interfaz en **React + TypeScript** (Vite).
 - **SQLite** local (modo WAL) para los datos y una copia local del logo.
 - **whisper.cpp** (`whisper-rs`) para transcribir en el propio equipo, `cpal` para el micrófono, `symphonia` para importar audios y `rubato` para convertirlos a 16 kHz.
+- **PDF/A-2b** generado en Rust con `krilla`, medida del texto con `rustybuzz` y la tipografía Liberation Sans incrustada. Un presupuesto de 50 líneas se genera en unos 170 ms.
+- Importes en céntimos enteros y porcentajes en puntos básicos: nunca se usa coma flotante para el dinero.
 - Pruebas: `cargo test`, Vitest + Testing Library y WebdriverIO + `tauri-driver` para e2e.
 - Plataforma principal: Windows 10/11 x64. macOS y Linux son viables con el mismo código.
 
@@ -69,8 +79,9 @@ el equipo se queda sin memoria al compilar en paralelo: limita los procesos con
 el modelo viaja dentro del instalador y la aplicación nunca descarga nada.
 
 Las guías de validación están en los quickstart de cada feature:
-[perfil y tarifas](specs/001-business-profile-rates/quickstart.md) y
-[borrador por voz](specs/002-voice-quote-draft/quickstart.md).
+[perfil y tarifas](specs/001-business-profile-rates/quickstart.md),
+[borrador por voz](specs/002-voice-quote-draft/quickstart.md) y
+[PDF del presupuesto](specs/003-quote-pdf-export/quickstart.md).
 
 ### Dictar una visita
 
@@ -79,6 +90,8 @@ Las guías de validación están en los quickstart de cada feature:
 2. La app transcribe el audio en tu equipo y propone las líneas con tus tarifas. Lo que no tiene
    tarifa queda como «precio pendiente»: nunca se inventa un precio.
 3. Corrige las líneas o el texto, completa lo pendiente y pulsa **Dar por bueno**.
+4. Pulsa **Generar PDF**, escribe los datos del cliente, confirma y elige dónde guardarlo. Mientras
+   quede un precio pendiente o falte un dato obligatorio, la app explica qué falta y no crea el archivo.
 
 ### Dónde se guardan los datos
 
@@ -86,7 +99,7 @@ Todo queda en el equipo, en la carpeta de datos de la aplicación (en Windows,
 `%APPDATA%\es.presupuestosvoz.app`):
 
 ```text
-presupuestos.db        # base de datos SQLite: perfil, unidades, tarifas y borrador
+presupuestos.db        # base de datos SQLite: perfil, unidades, tarifas, borrador y numeración
 branding/logo-*.png    # copia del logo (o .jpg)
 recordings/*.wav       # audio del borrador en curso
 ```
