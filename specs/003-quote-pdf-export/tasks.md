@@ -168,7 +168,7 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 
 ### Implementation for User Story 4
 
-- [ ] T055 [US4] Validar a mano el escenario 8 de `specs/003-quote-pdf-export/quickstart.md` con la red desactivada, cubriendo generación, bloqueo y guardado (SC-008), y anotar el resultado en esta tarea.
+- [X] T055 [US4] Validar a mano el escenario 8 de `specs/003-quote-pdf-export/quickstart.md` con la red desactivada, cubriendo generación, bloqueo y guardado (SC-008), y anotar el resultado en esta tarea. **Resultado (2026-11-19)**: validado por el responsable; generación, bloqueo y guardado funcionan sin red y sin avisos de conexión.
 
 **Checkpoint**: todas las historias funcionan con la red desactivada.
 
@@ -182,8 +182,8 @@ description: "Lista de tareas para implementar el PDF del presupuesto"
 - [X] T057 Revisar `src-tauri/src/services/quote_service.rs`, `src-tauri/src/storage/pdf_store.rs` y `src-tauri/src/commands/quote.rs` para confirmar que ningún registro incluye datos del cliente, contenido del presupuesto ni rutas (FR-028b).
 - [X] T058 Ejecutar `cargo test --manifest-path src-tauri/Cargo.toml --no-default-features`, `npm run test`, `npm run lint`, `npm run typecheck` y `cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings`, y corregir lo que falle.
 - [ ] T059 Medir la generación de un presupuesto de 50 líneas en la app compilada en modo release y anotar el resultado en `specs/003-quote-pdf-export/research.md` (SC-002).
-- [ ] T060 Validar a mano los escenarios 1 a 7 de `specs/003-quote-pdf-export/quickstart.md`, incluidos Acrobat, Edge y Chrome (SC-006), la sustitución de archivos (FR-022) y la falta de espacio, y cronometrar el paso de un borrador revisado al PDF guardado, que debe durar menos de 1 minuto (SC-001).
-- [ ] T061 Validar un documento generado con veraPDF, perfil PDF/A-2b, y anotar el resultado en `specs/003-quote-pdf-export/research.md`.
+- [X] T060 Validar a mano los escenarios 1 a 7 de `specs/003-quote-pdf-export/quickstart.md`, incluidos Acrobat, Edge y Chrome (SC-006), la sustitución de archivos (FR-022) y la falta de espacio, y cronometrar el paso de un borrador revisado al PDF guardado, que debe durar menos de 1 minuto (SC-001).
+- [X] T061 Validar un documento generado con veraPDF, perfil PDF/A-2b, y anotar el resultado en `specs/003-quote-pdf-export/research.md`.
 - [X] T062 [P] Actualizar `CLAUDE.md`: feature en curso, dependencias nuevas, carpeta `src/features/quote-pdf/`, módulo `src-tauri/src/pdf/` y la descarga única de la tipografía al preparar el repositorio (T002) como excepción a la regla de red.
 
 ---

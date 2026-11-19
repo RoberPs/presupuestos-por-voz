@@ -21,7 +21,9 @@ Comprobado sobre esos archivos con PyMuPDF y pypdf:
 - Un PNG con transparencia se ve sobre un fondo de color sin recuadro.
 - Una palabra de 160 caracteres sin espacios se reparte en varios renglones.
 
-**Sin comprobar todavía** (queda en [quickstart.md](quickstart.md)): la apertura en Adobe Acrobat, Edge y Chrome, y la validación PDF/A con una herramienta externa.
+**Validación manual (2026-11-19)**: el responsable del proyecto completó [quickstart.md](quickstart.md) sobre la app en desarrollo. Los documentos generados se abren correctamente en Adobe Acrobat, Edge y Chrome (SC-006) y superan la validación de veraPDF con el perfil PDF/A-2b, sin errores (T061).
+
+**Pendiente**: medir la generación de 50 líneas en la app compilada en modo release (T059, SC-002). Las cifras de la tabla son de la prueba aislada, no de la app.
 
 ---
 

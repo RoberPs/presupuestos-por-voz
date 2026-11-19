@@ -12,7 +12,7 @@ dictada por voz. Un solo usuario por instalación, sin conocimientos técnicos.
 
 - El proyecto se desarrolla con **Spec Kit** (Spec-Driven Development, v0.16.5, scripts PowerShell).
 - Feature en curso: `003-quote-pdf-export` (PDF del presupuesto), en la rama del mismo nombre.
-  Implementadas US1–US4. Consulta su `tasks.md` para ver las validaciones manuales pendientes.
+  Implementadas y validadas a mano US1–US4. Solo queda T059: medir 50 líneas en la app compilada en release.
 - Features anteriores: `002-voice-quote-draft` (borrador de presupuesto por voz) y
   `001-business-profile-rates` (perfil del negocio, logo y tarifas).
 - Equipo de desarrollo con poca memoria: compila Rust con `-j 2` (o `$env:CARGO_BUILD_JOBS = 2`).
