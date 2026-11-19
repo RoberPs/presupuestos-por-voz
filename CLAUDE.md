@@ -128,8 +128,10 @@ La shell principal es PowerShell 5.1: encadena comandos con `;` (no existe `&&`)
 - Todos los comandos se registran en `src-tauri/src/lib.rs`, así que las tareas que lo tocan no son paralelas.
 - **Seguridad sin red**: CSP sin orígenes remotos; capabilities limitadas a `core:default`, `dialog:allow-open` y `log:default`.
   No añadas plugins HTTP, updater, telemetría, CDNs ni fuentes remotas. Únicas excepciones de red, solo al
-  preparar el repositorio: `npm run model:fetch` descarga el modelo y la tipografía se descargó una vez
-  (T002 de la feature 003) y está en git. La app nunca descarga nada.
+  preparar el repositorio o el equipo de compilación: `npm run model:fetch` descarga el modelo; la tipografía
+  se descargó una vez (T002 de la feature 003) y está en git; y el primer `npm run tauri build` descarga de
+  GitHub las herramientas de empaquetado de Tauri (NSIS y `nsis_tauri_utils`) y comprueba su hash. La app
+  nunca descarga nada.
 - **Precios del borrador**: el intérprete de texto es determinista y solo copia precios de una tarifa. Cualquier
   duda deja la línea pendiente. Cantidades en **centésimas enteras** (1,5 → 150).
 - **Textos**: todos en español sencillo y sin jerga técnica, centralizados en `src/shared/i18n/es.ts`. Los errores de almacenamiento
