@@ -23,7 +23,13 @@ Comprobado sobre esos archivos con PyMuPDF y pypdf:
 
 **Validación manual (2026-11-19)**: el responsable del proyecto completó [quickstart.md](quickstart.md) sobre la app en desarrollo. Los documentos generados se abren correctamente en Adobe Acrobat, Edge y Chrome (SC-006) y superan la validación de veraPDF con el perfil PDF/A-2b, sin errores (T061).
 
-**Pendiente**: medir la generación de 50 líneas en la app compilada en modo release (T059, SC-002). Las cifras de la tabla son de la prueba aislada, no de la app.
+**Medición en la app (T059, SC-002, 2026-11-19)**: `cargo run --release --no-default-features --example quote_pdf_benchmark -- 50 5` cronometra `quote_service::generate_to_path` con el código de la app: maquetación, dibujo con `krilla`, escritura atómica y numeración. El diálogo de guardado queda fuera, igual que en SC-002. Se usaron 50 líneas con conceptos de 160 caracteres y un logo PNG con transparencia de 1200 × 600 px.
+
+| Repetición | 1 | 2 | 3 | 4 | 5 |
+|---|---:|---:|---:|---:|---:|
+| Tiempo | 325 ms | 750 ms | 172 ms | 172 ms | 169 ms |
+
+Resultado: documento de 5 páginas y 271 KB. Mediana de 172 ms y peor caso de 750 ms frente al límite de 5 s: **cumple**. Las primeras repeticiones incluyen el arranque en frío del disco y de la caché.
 
 ---
 
